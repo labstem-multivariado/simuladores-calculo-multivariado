@@ -285,10 +285,24 @@ function plotField(P,Q,R){
   }
 
   const cone = {
-    type:"cone", x,y,z,u,v,w,
-    sizemode:"absolute", sizeref:0.55, anchor:"tail",
-    showscale:false, name:"Campo vectorial"
-  };
+    type:"cone",
+    x,y,z,u,v,w,
+
+    sizemode:"scaled",
+
+    sizeref:0.22,
+
+    anchor:"tip",
+
+    colorscale:[
+      [0,"#1f77b4"],
+      [1,"#1f77b4"]
+    ],
+
+    showscale:false,
+
+    name:"Campo vectorial"
+};
 
   const layout = {
     margin:{l:0,r:0,b:0,t:8},
