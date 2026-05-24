@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulador de gradiente - Cálculo Multivariado</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/13.2.0/math.min.js"></script>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --bg: #f7f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #d1d5db;
+      --ok-bg: #ecfdf5;
+      --ok-border: #10b981;
+      --warn-bg: #fff7ed;
+      --warn-border: #fb923c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 28px 18px;
+      text-align: center;
+    }
+    header h1 { margin: 0 0 8px; font-size: clamp(1.5rem, 3vw, 2.2rem); }
+    header p { margin: 0; font-size: 1rem; opacity: 0.95; }
+    main {
+      width: min(1180px, 94vw);
+      margin: 24px auto;
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    }
+    .card h2 { margin-top: 0; font-size: 1.15rem; color: var(--primary-dark); }
+    label { display: block; font-weight: 700; margin: 14px 0 6px; }
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 1rem;
+      background: white;
+    }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    button {
+      width: 100%;
+      margin-top: 16px;
+      padding: 12px 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    button:hover { background: var(--primary-dark); }
+    .hint { color: var(--muted); font-size: 0.92rem; margin-top: 6px; }
+    .result {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 12px;
+      border-left: 5px solid var(--ok-border);
+      background: var(--ok-bg);
+    }
+    .error {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 12px;
+      border-left: 5px solid var(--warn-border);
+      background: var(--warn-bg);
+      display: none;
+    }
+    .math-line {
+      font-family: Consolas, Monaco, monospace;
+      background: rgba(255, 255, 255, 0.65);
+      padding: 8px;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+    #plot { width: 100%; height: 620px; }
+    footer {
+      width: min(1180px, 94vw);
+      margin: 0 auto 28px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    .home-link{
+      color:white;
+      display:inline-block;
+      margin-top:10px;
+      font-weight:700;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Simulador de gradiente</h1>
+    <p>Visualización de una función de dos variables y de la dirección de máximo crecimiento en un punto dado.</p>
+    <a class="home-link" href="../../">Volver al inicio</a>
+  </header>
+
+  <main>
+    <section class="card" aria-labelledby="datos">
+      <h2 id="datos">Datos de entrada</h2>
+
+      <label for="example">Cargar ejemplo</label>
+      <select id="example">
+        <option value="custom">Escribir función propia</option>
+        <option value="A">A. Cobertura de señal</option>
+        <option value="B">B. Eficiencia energética</option>
+        <option value="C">C. Calidad multimedia</option>
+        <option value="D">D. Latencia en red</option>
+        <option value="E">E. Sensibilidad de sensores</option>
+      </select>
+
+      <label for="functionInput">Función f(x,y)</label>
+      <input id="functionInput" type="text" value="60+8*x+6*y-x^2-y^2" />
+      <p class="hint">Use <strong>x</strong> y <strong>y</strong>. Ejemplo: <code>60+8*x+6*y-x^2-y^2</code></p>
+
+      <div class="row">
+        <div>
+          <label for="xPoint">Punto x</label>
+          <input id="xPoint" type="number" step="any" value="2" />
+        </div>
+        <div>
+          <label for="yPoint">Punto y</label>
+          <input id="yPoint" type="number" step="any" value="1" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="xMin">x mínimo</label>
+          <input id="xMin" type="number" step="any" value="-6" />
+        </div>
+        <div>
+          <label for="xMax">x máximo</label>
+          <input id="xMax" type="number" step="any" value="6" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="yMin">y mínimo</label>
+          <input id="yMin" type="number" step="any" value="-6" />
+        </div>
+        <div>
+          <label for="yMax">y máximo</label>
+          <input id="yMax" type="number" step="any" value="6" />
+        </div>
+      </div>
+
+      <button id="calculateBtn">Calcular y graficar</button>
+
+      <div id="errorBox" class="error"></div>
+
+      <div id="resultBox" class="result" aria-live="polite">
+        <strong>Resultado</strong>
+        <p class="math-line" id="gradientSymbolic">Gradiente: pendiente de cálculo</p>
+        <p class="math-line" id="gradientPoint">Gradiente evaluado: pendiente de cálculo</p>
+        <p id="interpretation">Ingrese los datos y presione calcular.</p>
+      </div>
+
+      <p class="hint">Para potencias use <code>^</code> y para multiplicaciones use <code>*</code>.</p>
+    </section>
+
+    <section class="card" aria-labelledby="grafica">
+      <h2 id="grafica">Gráfica de la función y vector gradiente</h2>
+      <div id="plot"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>El vector gradiente indica la dirección de máximo crecimiento local de la función. La visualización es un apoyo para la interpretación; el estudiante debe justificar matemáticamente el resultado.</p>
+  </footer>
+
+  <script>
+    const examples = {
+      A: { f: "60+8*x+6*y-x^2-y^2", x: 2, y: 1, xmin: -6, xmax: 6, ymin: -6, ymax: 6 },
+      B: { f: "40+10*x+4*y-2*x^2-y^2", x: 1, y: 2, xmin: -6, xmax: 6, ymin: -6, ymax: 6 },
+      C: { f: "50+12*x+8*y-x^2-2*y^2", x: 2, y: 2, xmin: -6, xmax: 8, ymin: -6, ymax: 8 },
+      D: { f: "80-6*x-4*y+x^2+y^2", x: 1, y: 1, xmin: -6, xmax: 6, ymin: -6, ymax: 6 },
+      E: { f: "30+9*x+7*y-x^2-y^2", x: 2, y: 1, xmin: -6, xmax: 8, ymin: -6, ymax: 8 }
+    };
+
+    const exampleSelect = document.getElementById("example");
+    const functionInput = document.getElementById("functionInput");
+    const xPointInput = document.getElementById("xPoint");
+    const yPointInput = document.getElementById("yPoint");
+    const xMinInput = document.getElementById("xMin");
+    const xMaxInput = document.getElementById("xMax");
+    const yMinInput = document.getElementById("yMin");
+    const yMaxInput = document.getElementById("yMax");
+    const errorBox = document.getElementById("errorBox");
+    const gradientSymbolic = document.getElementById("gradientSymbolic");
+    const gradientPoint = document.getElementById("gradientPoint");
+    const interpretation = document.getElementById("interpretation");
+
+    exampleSelect.addEventListener("change", () => {
+      const selected = exampleSelect.value;
+      if (selected !== "custom") {
+        const data = examples[selected];
+        functionInput.value = data.f;
+        xPointInput.value = data.x;
+        yPointInput.value = data.y;
+        xMinInput.value = data.xmin;
+        xMaxInput.value = data.xmax;
+        yMinInput.value = data.ymin;
+        yMaxInput.value = data.ymax;
+      }
+    });
+
+    document.getElementById("calculateBtn").addEventListener("click", calculateAndPlot);
+
+    function showError(message) {
+      errorBox.style.display = "block";
+      errorBox.textContent = message;
+    }
+
+    function hideError() {
+      errorBox.style.display = "none";
+      errorBox.textContent = "";
+    }
+
+    function range(start, stop, steps) {
+      const arr = [];
+      const step = (stop - start) / (steps - 1);
+      for (let i = 0; i < steps; i++) arr.push(start + i * step);
+      return arr;
+    }
+
+    function formatNumber(value) {
+      if (!isFinite(value)) return String(value);
+      const rounded = Math.round(value * 10000) / 10000;
+      return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
+    }
+
+    function calculateAndPlot() {
+      hideError();
+
+      try {
+        const fText = functionInput.value.trim();
+        const x0 = Number(xPointInput.value);
+        const y0 = Number(yPointInput.value);
+        const xMin = Number(xMinInput.value);
+        const xMax = Number(xMaxInput.value);
+        const yMin = Number(yMinInput.value);
+        const yMax = Number(yMaxInput.value);
+
+        if (!fText) throw new Error("Ingrese una función en términos de x y y.");
+        if (![x0, y0, xMin, xMax, yMin, yMax].every(Number.isFinite)) {
+          throw new Error("Revise los valores numéricos del punto y del intervalo de graficación.");
+        }
+        if (xMin >= xMax || yMin >= yMax) {
+          throw new Error("Los valores mínimos deben ser menores que los valores máximos.");
+        }
+
+        const parsed = math.parse(fText);
+        const dfdxNode = math.derivative(parsed, "x");
+        const dfdyNode = math.derivative(parsed, "y");
+        const fCompiled = parsed.compile();
+        const dfdxCompiled = dfdxNode.compile();
+        const dfdyCompiled = dfdyNode.compile();
+
+        const z0 = fCompiled.evaluate({ x: x0, y: y0 });
+        const gx = dfdxCompiled.evaluate({ x: x0, y: y0 });
+        const gy = dfdyCompiled.evaluate({ x: x0, y: y0 });
+        const norm = Math.sqrt(gx * gx + gy * gy);
+
+        if (![z0, gx, gy, norm].every(Number.isFinite)) {
+          throw new Error("La función o el gradiente no se pudieron evaluar en el punto indicado.");
+        }
+
+        gradientSymbolic.textContent = `∇f(x,y) = (${dfdxNode.toString()}, ${dfdyNode.toString()})`;
+        gradientPoint.textContent = `∇f(${formatNumber(x0)}, ${formatNumber(y0)}) = (${formatNumber(gx)}, ${formatNumber(gy)})`;
+
+        if (norm === 0) {
+          interpretation.textContent = "En el punto indicado, el gradiente es el vector cero. Esto sugiere un punto crítico: localmente no hay una dirección única de máximo crecimiento definida por el gradiente.";
+        } else {
+          const ux = gx / norm;
+          const uy = gy / norm;
+          interpretation.textContent = `La dirección de máximo crecimiento está dada por el vector gradiente. En este punto, la dirección unitaria aproximada es (${formatNumber(ux)}, ${formatNumber(uy)}). En el contexto del problema, esa dirección indica hacia dónde el sistema aumenta más rápidamente.`;
+        }
+
+        const steps = 45;
+        const xs = range(xMin, xMax, steps);
+        const ys = range(yMin, yMax, steps);
+        const z = ys.map(y => xs.map(x => {
+          const value = fCompiled.evaluate({ x, y });
+          return Number.isFinite(value) ? value : null;
+        }));
+
+        const surface = {
+          type: "surface",
+          x: xs,
+          y: ys,
+          z: z,
+          opacity: 0.88,
+          contours: { z: { show: true, usecolormap: true, highlightcolor: "#111827", project: { z: true } } },
+          colorbar: { title: "f(x,y)" },
+          name: "Superficie"
+        };
+
+        const scaleBase = Math.min(xMax - xMin, yMax - yMin) * 0.18;
+        const vectorScale = norm === 0 ? 0 : scaleBase / norm;
+        const x1 = x0 + gx * vectorScale;
+        const y1 = y0 + gy * vectorScale;
+        const z1 = fCompiled.evaluate({ x: x1, y: y1 });
+
+        const pointTrace = {
+          type: "scatter3d",
+          mode: "markers+text",
+          x: [x0],
+          y: [y0],
+          z: [z0],
+          text: [`P(${formatNumber(x0)}, ${formatNumber(y0)}, ${formatNumber(z0)})`],
+          textposition: "top center",
+          marker: { size: 6 },
+          name: "Punto de evaluación"
+        };
+
+        const gradientTrace = {
+          type: "scatter3d",
+          mode: "lines+markers+text",
+          x: [x0, x1],
+          y: [y0, y1],
+          z: [z0, z1],
+          text: ["", "∇f"],
+          textposition: "top center",
+          line: { width: 8 },
+          marker: { size: 4 },
+          name: "Dirección del gradiente"
+        };
+
+        const layout = {
+          margin: { l: 0, r: 0, b: 0, t: 8 },
+          scene: {
+            xaxis: { title: "x" },
+            yaxis: { title: "y" },
+            zaxis: { title: "f(x,y)" },
+            camera: { eye: { x: 1.5, y: 1.5, z: 1.1 } }
+          },
+          legend: { orientation: "h", x: 0, y: 1 }
+        };
+
+        Plotly.newPlot("plot", [surface, pointTrace, gradientTrace], layout, { responsive: true });
+      } catch (error) {
+        showError(error.message || "Ocurrió un error al procesar la función.");
+      }
+    }
+
+    calculateAndPlot();
+  </script>
+</body>
+</html>
