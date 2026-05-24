@@ -9,7 +9,8 @@
   <style>
     :root{
       --bg:#f4f6f8; --card:#fff; --ink:#1f2937; --muted:#6b7280; --line:#d1d5db;
-      --navy:#111827; --gold:#c59b2c; --gold-soft:#f8f1da; --code:#f3f4f6; --warn:#fff7ed; --warn-line:#f97316;
+      --navy:#111827; --gold:#c59b2c; --gold-soft:#f8f1da; --code:#f3f4f6;
+      --warn:#fff7ed; --warn-line:#f97316;
     }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--ink);line-height:1.45}
@@ -40,7 +41,7 @@
     .tab{background:#fff;color:var(--ink);border:1px solid var(--line);padding:8px 12px;border-radius:999px}
     .tab.active{background:var(--navy);color:#fff}
     .tab-panel{display:none;padding:16px}.tab-panel.active{display:block}
-    #plot{height:630px;width:100%}
+    #plot{height:650px;width:100%}
     .error{display:none;background:var(--warn);border-left:5px solid var(--warn-line);border-radius:10px;padding:12px;margin-top:12px}
     footer{width:min(1360px,96vw);margin:0 auto 30px;color:var(--muted);font-size:.9rem}
   </style>
@@ -91,9 +92,15 @@
 
     <label for="vectorSize">Tamaño de los vectores</label>
     <select id="vectorSize">
-      <option value="0.50">Corto</option>
-      <option value="0.80" selected>Medio</option>
-      <option value="1.05">Largo</option>
+      <option value="0.28">Corto</option>
+      <option value="0.42" selected>Medio</option>
+      <option value="0.58">Largo</option>
+    </select>
+
+    <label for="normalize">Escala visual</label>
+    <select id="normalize">
+      <option value="directional">Dirección normalizada</option>
+      <option value="magnitude" selected>Magnitud proporcional</option>
     </select>
 
     <button class="primary" id="generate">Generar análisis</button>
@@ -166,6 +173,7 @@
 
 <script>
 const $ = id => document.getElementById(id);
+
 document.querySelectorAll(".tab").forEach(btn=>{
   btn.addEventListener("click",()=>{
     document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
@@ -181,11 +189,11 @@ $("practice").addEventListener("click", () => {
   $("Q").value = "x";
   $("R").value = "0";
   $("mode").value = "xy";
+  $("normalize").value = "magnitude";
   generate();
 });
 
 function text(id){ return $(id).value.trim(); }
-function cleanExpr(s){ return s.replaceAll("^","^"); }
 function fmtNode(node){ return node.toString().replaceAll("*",""); }
 
 function generate(){
@@ -271,6 +279,11 @@ function plotField(P,Q,R){
   const density = Number($("density").value);
   const vals = range(min,max,density);
   const x=[], y=[], z=[], u=[], v=[], w=[];
+  const vectorSize = Number($("vectorSize").value || 0.42);
+  const scaleMode = $("normalize").value;
+
+  let maxMag = 0;
+  const raw = [];
 
   for(const a of vals){
     for(const b of vals){
@@ -279,39 +292,51 @@ function plotField(P,Q,R){
         let xx=a, yy=b, zz=c;
         if(mode==="xz"){ yy=0; zz=b; }
         if(mode==="yz"){ xx=0; yy=a; zz=b; }
+
         const scope={x:xx,y:yy,z:zz};
-        let uu = safeEvalCompiled(P, scope);
-        let vv = safeEvalCompiled(Q, scope);
-        let ww = safeEvalCompiled(R, scope);
-        const norm = Math.sqrt(uu*uu+vv*vv+ww*ww) || 1;
-        const scale = Number($("vectorSize").value || 0.80);
-        x.push(xx); y.push(yy); z.push(zz);
-        u.push((uu/norm)*scale); v.push((vv/norm)*scale); w.push((ww/norm)*scale);
+        const uu = safeEvalCompiled(P, scope);
+        const vv = safeEvalCompiled(Q, scope);
+        const ww = safeEvalCompiled(R, scope);
+        const mag = Math.sqrt(uu*uu + vv*vv + ww*ww);
+
+        raw.push({xx,yy,zz,uu,vv,ww,mag});
+        if(mag > maxMag) maxMag = mag;
       }
     }
+  }
+
+  for(const item of raw){
+    const {xx,yy,zz,uu,vv,ww,mag} = item;
+    let factor = 0;
+
+    if(mag > 0){
+      if(scaleMode === "directional"){
+        factor = vectorSize / mag;
+      } else {
+        const relative = maxMag > 0 ? mag / maxMag : 0;
+        factor = vectorSize * (0.25 + 0.75 * relative) / mag;
+      }
+    }
+
+    x.push(xx); y.push(yy); z.push(zz);
+    u.push(uu * factor);
+    v.push(vv * factor);
+    w.push(ww * factor);
   }
 
   const cone = {
     type:"cone",
     x,y,z,u,v,w,
     sizemode:"absolute",
-    sizeref:0.32,
+    sizeref:0.26,
     anchor:"tail",
     colorscale:[[0,"#1f77b4"],[1,"#1f77b4"]],
     showscale:false,
-    opacity:0.95,
-    name:"Campo vectorial"
+    opacity:0.96,
+    name:"Campo vectorial",
+    hovertemplate:"x: %{x}<br>y: %{y}<br>z: %{z}<extra></extra>"
   };
 
-  const layout = {
-    margin:{l:0,r:0,b:0,t:8},
-    scene:{
-      xaxis:{title:"x"},
-      yaxis:{title:"y"},
-      zaxis:{title:"z"},
-      camera:{eye:{x:1.5,y:1.5,z:1.15}}
-    }
-  };
   const origin = {
     type:"scatter3d",
     mode:"markers+text",
@@ -322,6 +347,16 @@ function plotField(P,Q,R){
     name:"Origen"
   };
 
+  const layout = {
+    margin:{l:0,r:0,b:0,t:8},
+    scene:{
+      xaxis:{title:"x", range:[min,max]},
+      yaxis:{title:"y", range:[min,max]},
+      zaxis:{title:"z", range:[min,max]},
+      camera:{eye:{x:1.55,y:1.55,z:1.18}},
+      aspectmode:"cube"
+    }
+  };
   Plotly.newPlot("plot", [cone, origin], layout, {responsive:true});
 }
 
