@@ -3,31 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulador de Integración Múltiple</title>
+  <title>Simulador libre de integración múltiple</title>
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/13.2.0/math.min.js"></script>
   <style>
     :root{
-      --bg:#f4f5f7; --card:#ffffff; --ink:#1f2937; --muted:#6b7280; --line:#d1d5db;
-      --navy:#111827; --gold:#c59b2c; --gold2:#f8f1da; --blue:#2563eb; --green:#059669;
-      --red:#b91c1c; --soft:#f9fafb; --code:#f3f4f6;
+      --bg:#f4f6f8;--card:#ffffff;--ink:#1f2937;--muted:#6b7280;--line:#d1d5db;
+      --navy:#111827;--gold:#c59b2c;--gold-soft:#f8f1da;--code:#f3f4f6;--warn:#fff7ed;--warn-line:#f97316;
     }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--ink);line-height:1.45}
-    header{
-      background:#fff;border-bottom:4px solid var(--navy);padding:18px 26px;display:flex;align-items:center;gap:14px;
-      position:sticky;top:0;z-index:10;box-shadow:0 3px 10px rgba(0,0,0,.05)
-    }
+    header{background:#fff;border-bottom:4px solid var(--navy);padding:18px 26px;display:flex;align-items:center;gap:14px;box-shadow:0 3px 10px rgba(0,0,0,.05)}
     .logo{width:38px;height:38px;border:2px solid var(--gold);display:grid;place-items:center;color:var(--gold);font-weight:900}
-    header h1{margin:0;font-size:1.55rem;letter-spacing:.4px}
+    header h1{margin:0;font-size:1.45rem}
     header small{color:var(--muted)}
     .home{margin-left:auto;color:var(--navy);font-weight:700;text-decoration:none}
-    main{width:min(1320px,96vw);margin:20px auto;display:grid;grid-template-columns:400px 1fr;gap:18px}
-    @media(max-width:1000px){main{grid-template-columns:1fr} header{position:static;display:block}.home{display:inline-block;margin-top:8px}}
+    main{width:min(1320px,96vw);margin:20px auto;display:grid;grid-template-columns:410px 1fr;gap:18px}
+    @media(max-width:1000px){main{grid-template-columns:1fr} header{display:block}.home{display:inline-block;margin-top:8px}}
     .panel,.section{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 26px rgba(0,0,0,.06)}
-    .panel{padding:18px}
-    .section{margin-bottom:16px;overflow:hidden}
-    .section-title{background:#fff;border-bottom:2px solid var(--navy);padding:12px 16px;text-transform:uppercase;letter-spacing:3px;font-size:.82rem;font-weight:900;color:#554018}
+    .panel{padding:18px}.section{margin-bottom:16px;overflow:hidden}
+    .section-title{background:#fff;border-bottom:2px solid var(--navy);padding:12px 16px;text-transform:uppercase;letter-spacing:2px;font-size:.82rem;font-weight:900;color:#554018}
     .section-body{padding:16px}
     label{display:block;font-weight:800;margin:13px 0 6px}
     input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:white;font-size:1rem}
@@ -36,21 +31,18 @@
     button{border:0;border-radius:11px;padding:11px 14px;background:var(--navy);color:white;font-weight:800;cursor:pointer}
     button:hover{background:#374151}
     .primary{width:100%;margin-top:15px;background:var(--gold);color:#111}
+    .secondary{background:#fff;color:#111;border:1px solid var(--line);margin-top:8px;width:100%}
     .hint{font-size:.88rem;color:var(--muted);margin-top:6px}
-    .result-card{border-top:1px solid var(--line);padding:14px 16px}
-    .result-title{text-transform:uppercase;letter-spacing:2px;font-size:.8rem;font-weight:900;color:var(--muted);margin-bottom:8px}
+    .mini-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+    .mini{background:#fbfbff;border:1px solid var(--line);border-radius:12px;padding:12px}
     .math{font-family:Consolas,Monaco,monospace;background:var(--code);border:1px solid #e5e7eb;border-radius:8px;padding:9px;overflow-x:auto}
-    .good{color:var(--green);font-weight:800}.bad{color:var(--red);font-weight:800}
+    .badge{display:inline-block;background:var(--gold-soft);border:1px solid #ead9a4;color:#705500;border-radius:999px;padding:3px 8px;font-weight:800;font-size:.78rem}
     .tabs{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;background:#fff;border-bottom:1px solid var(--line)}
     .tab{background:#fff;color:var(--ink);border:1px solid var(--line);padding:8px 12px;border-radius:999px}
     .tab.active{background:var(--navy);color:#fff}
     .tab-panel{display:none;padding:16px}.tab-panel.active{display:block}
     #plot{height:610px;width:100%}
-    .mini-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-    .mini{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:12px}
-    .mini strong{color:#111}
-    .badge{display:inline-block;background:var(--gold2);border:1px solid #ead9a4;color:#705500;border-radius:999px;padding:3px 8px;font-weight:800;font-size:.78rem}
-    .error{display:none;background:#fff7ed;border-left:5px solid #f97316;border-radius:10px;padding:12px;margin-top:12px}
+    .error{display:none;background:var(--warn);border-left:5px solid var(--warn-line);border-radius:10px;padding:12px;margin-top:12px}
     footer{width:min(1320px,96vw);margin:0 auto 30px;color:var(--muted);font-size:.9rem}
   </style>
 </head>
@@ -58,307 +50,185 @@
 <header>
   <div class="logo">∭</div>
   <div>
-    <h1>Simulador de Integración Múltiple</h1>
-    <small>Regiones, transformaciones, jacobianos, integrales y visualización geométrica</small>
+    <h1>Simulador libre de integración múltiple</h1>
+    <small>El estudiante ingresa función, región, límites y cambio de coordenadas</small>
   </div>
   <a class="home" href="../../">Volver al Lab</a>
 </header>
 
 <main>
   <aside class="panel">
-    <h2>Entrada del problema</h2>
+    <h2>Datos que debe identificar el estudiante</h2>
 
-    <label for="example">Problema de la tarea</label>
-    <select id="example">
-      <option value="A">A. Cobertura de señal - polares</option>
-      <option value="B">B. Energía electrónica - cartesianas</option>
-      <option value="C">C. Sensores - cilíndricas</option>
-      <option value="D">D. Multimedia - esféricas</option>
-      <option value="E">E. Térmica - esféricas</option>
-      <option value="custom">Personalizado</option>
+    <label for="dimension">Tipo de integral</label>
+    <select id="dimension">
+      <option value="double">Integral doble</option>
+      <option value="triple">Integral triple</option>
     </select>
 
-    <label for="coord">Sistema de coordenadas</label>
+    <label for="func">Función a integrar</label>
+    <input id="func" value="" placeholder="Ejemplo: x^2+y^2" />
+    <p class="hint">Ingrese la función que aparece en su problema. Use <code>*</code> para multiplicar y <code>^</code> para potencias.</p>
+
+    <label for="region">Región en coordenadas cartesianas</label>
+    <textarea id="region" placeholder="Ejemplo: x^2 + y^2 <= 9"></textarea>
+    <p class="hint">Escriba la región como aparece en el enunciado. El simulador dará una sugerencia geométrica, pero usted debe verificarla.</p>
+
+    <label for="coord">Cambio de coordenadas que desea explorar</label>
     <select id="coord">
-      <option value="polar">Polares</option>
       <option value="cartesian">Cartesianas</option>
+      <option value="polar">Polares</option>
       <option value="cylindrical">Cilíndricas</option>
       <option value="spherical">Esféricas</option>
     </select>
 
-    <label for="func">Función a integrar</label>
-    <input id="func" value="16-x^2-y^2" />
-    <p class="hint">Usar: <code>x,y,z</code>, <code>r,theta,z</code> o <code>rho,theta,phi</code>.</p>
-
-    <div id="paramsPolar">
-      <div class="row">
-        <div><label for="pR">Radio R</label><input id="pR" type="number" step="any" value="4"></div>
-        <div><label for="pTheta">θ máximo</label><input id="pTheta" type="number" step="any" value="6.283185307"></div>
-      </div>
+    <label>Límites en el sistema seleccionado</label>
+    <div id="cartLimits">
+      <div class="row"><div><input id="xMin" placeholder="x mínimo"></div><div><input id="xMax" placeholder="x máximo"></div></div>
+      <div class="row"><div><input id="yMin" placeholder="y mínimo"></div><div><input id="yMax" placeholder="y máximo"></div></div>
+      <div id="zLimitsCart" style="display:none"><div class="row"><div><input id="zMin" placeholder="z mínimo"></div><div><input id="zMax" placeholder="z máximo"></div></div></div>
     </div>
 
-    <div id="paramsCart" style="display:none">
-      <div class="row">
-        <div><label for="cX">x máx</label><input id="cX" type="number" step="any" value="2"></div>
-        <div><label for="cY">y máx</label><input id="cY" type="number" step="any" value="2"></div>
-      </div>
-      <label for="cZ">z máx</label><input id="cZ" type="number" step="any" value="2">
+    <div id="polarLimits" style="display:none">
+      <div class="row"><div><input id="rMin" placeholder="r mínimo"></div><div><input id="rMax" placeholder="r máximo"></div></div>
+      <div class="row"><div><input id="thetaMin" placeholder="θ mínimo"></div><div><input id="thetaMax" placeholder="θ máximo"></div></div>
     </div>
 
-    <div id="paramsCyl" style="display:none">
-      <div class="row">
-        <div><label for="cyR">Radio R</label><input id="cyR" type="number" step="any" value="2"></div>
-        <div><label for="cyH">Altura H</label><input id="cyH" type="number" step="any" value="4"></div>
-      </div>
+    <div id="cylLimits" style="display:none">
+      <div class="row"><div><input id="crMin" placeholder="r mínimo"></div><div><input id="crMax" placeholder="r máximo"></div></div>
+      <div class="row"><div><input id="cthetaMin" placeholder="θ mínimo"></div><div><input id="cthetaMax" placeholder="θ máximo"></div></div>
+      <div class="row"><div><input id="czMin" placeholder="z mínimo"></div><div><input id="czMax" placeholder="z máximo"></div></div>
     </div>
 
-    <div id="paramsSph" style="display:none">
-      <label for="sR">Radio ρ máx</label><input id="sR" type="number" step="any" value="3">
+    <div id="sphLimits" style="display:none">
+      <div class="row"><div><input id="rhoMin" placeholder="ρ mínimo"></div><div><input id="rhoMax" placeholder="ρ máximo"></div></div>
+      <div class="row"><div><input id="phiMin" placeholder="φ mínimo"></div><div><input id="phiMax" placeholder="φ máximo"></div></div>
+      <div class="row"><div><input id="sthetaMin" placeholder="θ mínimo"></div><div><input id="sthetaMax" placeholder="θ máximo"></div></div>
     </div>
 
-    <label for="customContext">Contexto o nota del problema</label>
-    <textarea id="customContext">Una empresa de telecomunicaciones estima la cobertura generada por una antena en una región circular.</textarea>
-
-    <button class="primary" id="calculate">Calcular y visualizar</button>
+    <button class="primary" id="generate">Generar análisis</button>
+    <button class="secondary" id="practice">Cargar ejemplo de práctica no evaluativo</button>
     <div id="error" class="error"></div>
   </aside>
 
   <section>
     <div class="section">
-      <div class="section-title">Definición del problema</div>
+      <div class="section-title">1. Región original identificada</div>
       <div class="section-body">
         <div class="mini-grid">
-          <div class="mini"><span class="badge">Contexto</span><p id="contextOut"></p></div>
-          <div class="mini"><span class="badge">Región</span><p class="math" id="regionOut"></p></div>
-          <div class="mini"><span class="badge">Sistema sugerido</span><p id="systemOut"></p></div>
+          <div class="mini"><span class="badge">Función</span><p class="math" id="funcOut"></p></div>
+          <div class="mini"><span class="badge">Región cartesiana</span><p class="math" id="regionOut"></p></div>
+          <div class="mini"><span class="badge">Sugerencia geométrica</span><p id="suggestOut"></p></div>
         </div>
       </div>
     </div>
 
     <div class="section">
-      <div class="section-title">Resultados del cambio de coordenadas</div>
-      <div class="result-card">
-        <div class="result-title">Transformación</div>
-        <p class="math" id="transformOut"></p>
+      <div class="section-title">2. Cambio de coordenadas seleccionado</div>
+      <div class="section-body">
+        <div class="mini-grid">
+          <div class="mini"><strong>Transformación</strong><p class="math" id="transformOut"></p></div>
+          <div class="mini"><strong>Jacobiano</strong><p class="math" id="jacobianOut"></p></div>
+          <div class="mini"><strong>¿Por qué podría servir?</strong><p id="whyOut"></p></div>
+        </div>
       </div>
-      <div class="result-card">
-        <div class="result-title">Jacobiano / elemento diferencial</div>
-        <p class="math" id="jacobianOut"></p>
-      </div>
-      <div class="result-card">
-        <div class="result-title">Integral sugerida</div>
-        <p class="math" id="integralOut"></p>
-      </div>
-      <div class="result-card">
-        <div class="result-title">Valor aproximado por simulación</div>
-        <p class="math" id="approxOut"></p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">3. Integral planteada, no resuelta</div>
+      <div class="section-body">
+        <div class="mini-grid">
+          <div class="mini"><strong>Integral original</strong><p class="math" id="originalIntegralOut"></p></div>
+          <div class="mini"><strong>Integral en el sistema seleccionado</strong><p class="math" id="changedIntegralOut"></p></div>
+          <div class="mini"><strong>Nota</strong><p>El simulador no resuelve la integral; ayuda a plantearla e interpretar el cambio.</p></div>
+        </div>
       </div>
     </div>
 
     <div class="section">
       <div class="tabs">
-        <button class="tab active" data-tab="vis">Visualización</button>
-        <button class="tab" data-tab="interp">Interpretación</button>
-        <button class="tab" data-tab="guide">Guía para la entrega</button>
+        <button class="tab active" data-tab="visual">Visualización</button>
+        <button class="tab" data-tab="compare">Antes / después</button>
+        <button class="tab" data-tab="task">Para responder en la tarea</button>
       </div>
-
-      <div id="vis" class="tab-panel active">
-        <div id="plot"></div>
-      </div>
-
-      <div id="interp" class="tab-panel">
+      <div id="visual" class="tab-panel active"><div id="plot"></div></div>
+      <div id="compare" class="tab-panel">
         <div class="mini-grid">
-          <div class="mini"><strong>Sentido geométrico</strong><p id="geoOut"></p></div>
-          <div class="mini"><strong>Variables y ángulos</strong><p id="anglesOut"></p></div>
-          <div class="mini"><strong>Por qué este cambio ayuda</strong><p id="whyOut"></p></div>
+          <div class="mini"><strong>Antes: región en cartesianas</strong><p class="math" id="beforeOut"></p></div>
+          <div class="mini"><strong>Después: límites propuestos</strong><p class="math" id="afterOut"></p></div>
+          <div class="mini"><strong>Interpretación</strong><p id="interpretOut"></p></div>
         </div>
       </div>
-
-      <div id="guide" class="tab-panel">
+      <div id="task" class="tab-panel">
         <div class="mini-grid">
-          <div class="mini"><strong>1. Región</strong><p>Incluya captura de la visualización y describa la forma geométrica.</p></div>
-          <div class="mini"><strong>2. Transformación</strong><p>Escriba el cambio de coordenadas y explique el papel de sus variables.</p></div>
-          <div class="mini"><strong>3. Integral</strong><p>Plantee la integral con el Jacobiano correspondiente e interprete el resultado.</p></div>
+          <div class="mini"><strong>1. Identificación</strong><p>Explique qué función y qué región tomó del enunciado.</p></div>
+          <div class="mini"><strong>2. Cambio</strong><p>Justifique por qué seleccionó cartesianas, polares, cilíndricas o esféricas.</p></div>
+          <div class="mini"><strong>3. Planteamiento</strong><p>Escriba la integral con límites y Jacobiano. Revise que corresponda a su problema.</p></div>
         </div>
       </div>
     </div>
   </section>
 </main>
 
-<footer>El simulador es un recurso de apoyo visual y computacional. La justificación matemática debe desarrollarse en la tarea.</footer>
+<footer>Lab Multivariado. Herramienta pedagógica para apoyar el planteamiento de integrales múltiples.</footer>
 
 <script>
-const problems = {
-  A: {
-    coord:"polar", func:"16-x^2-y^2", context:"Una empresa de telecomunicaciones estima la cobertura generada por una antena en una región circular.",
-    region:"x² + y² ≤ 16", pR:4, pTheta:2*Math.PI
-  },
-  B: {
-    coord:"cartesian", func:"x+y+z", context:"Un sistema electrónico presenta una distribución espacial de energía en una caja tridimensional.",
-    region:"0 ≤ x ≤ 2, 0 ≤ y ≤ 2, 0 ≤ z ≤ 2", cX:2, cY:2, cZ:2
-  },
-  C: {
-    coord:"cylindrical", func:"r^2+z", context:"Un sistema de sensores analiza una magnitud física en una región cilíndrica.",
-    region:"x² + y² ≤ 4, 0 ≤ z ≤ 4", cyR:2, cyH:4
-  },
-  D: {
-    coord:"spherical", func:"rho^2", context:"Una plataforma multimedia analiza la distribución espacial de información procesada en una región esférica.",
-    region:"x² + y² + z² ≤ 9", sR:3
-  },
-  E: {
-    coord:"spherical", func:"20-rho^2", context:"Un dispositivo electrónico presenta una distribución térmica con simetría esférica.",
-    region:"x² + y² + z² ≤ 4", sR:2
-  }
-};
-
 const $ = id => document.getElementById(id);
-function n(id){ return Number($(id).value); }
-function fmt(v){ return Number.isFinite(v) ? String(Math.round(v*10000)/10000) : "No disponible"; }
-function range(a,b,m){ const arr=[]; const h=(b-a)/(m-1); for(let i=0;i<m;i++) arr.push(a+i*h); return arr; }
+document.querySelectorAll(".tab").forEach(btn=>{btn.addEventListener("click",()=>{document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));document.querySelectorAll(".tab-panel").forEach(p=>p.classList.remove("active"));btn.classList.add("active");$(btn.dataset.tab).classList.add("active");});});
+$("dimension").addEventListener("change", updatePanels);
+$("coord").addEventListener("change", updatePanels);
+$("generate").addEventListener("click", generate);
+$("practice").addEventListener("click", loadPractice);
 
-document.querySelectorAll(".tab").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
-    document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
-    btn.classList.add("active"); $(btn.dataset.tab).classList.add("active");
-  });
-});
-
-$("example").addEventListener("change", loadProblem);
-$("coord").addEventListener("change", () => { showParams(); calculate(); });
-$("calculate").addEventListener("click", calculate);
-
-function loadProblem(){
-  const key = $("example").value;
-  if(key === "custom") return;
-  const p = problems[key];
-  $("coord").value = p.coord; $("func").value = p.func; $("customContext").value = p.context;
-  if(p.pR) $("pR").value = p.pR; if(p.pTheta) $("pTheta").value = p.pTheta;
-  if(p.cX) $("cX").value = p.cX; if(p.cY) $("cY").value = p.cY; if(p.cZ) $("cZ").value = p.cZ;
-  if(p.cyR) $("cyR").value = p.cyR; if(p.cyH) $("cyH").value = p.cyH;
-  if(p.sR) $("sR").value = p.sR;
-  showParams(); calculate();
+function updatePanels(){
+  const dim=$("dimension").value, c=$("coord").value;
+  $("zLimitsCart").style.display=dim==="triple"&&c==="cartesian"?"block":"none";
+  $("cartLimits").style.display=c==="cartesian"?"block":"none";
+  $("polarLimits").style.display=c==="polar"?"block":"none";
+  $("cylLimits").style.display=c==="cylindrical"?"block":"none";
+  $("sphLimits").style.display=c==="spherical"?"block":"none";
 }
-
-function showParams(){
-  const c = $("coord").value;
-  $("paramsPolar").style.display = c==="polar" ? "block" : "none";
-  $("paramsCart").style.display = c==="cartesian" ? "block" : "none";
-  $("paramsCyl").style.display = c==="cylindrical" ? "block" : "none";
-  $("paramsSph").style.display = c==="spherical" ? "block" : "none";
+function loadPractice(){
+  $("dimension").value="double"; $("func").value="25-x^2-y^2"; $("region").value="x^2 + y^2 <= 25"; $("coord").value="polar";
+  $("rMin").value="0"; $("rMax").value="5"; $("thetaMin").value="0"; $("thetaMax").value="2*pi";
+  updatePanels(); generate();
 }
-
-function setError(msg){ $("error").style.display="block"; $("error").textContent=msg; }
-function clearError(){ $("error").style.display="none"; $("error").textContent=""; }
-
-function calculate(){
-  clearError();
+function parseVal(expr){try{return math.evaluate(expr)}catch(e){return Number(expr)}}
+function text(id){return $(id).value.trim()}
+function generate(){
   try{
-    const c = $("coord").value;
-    $("contextOut").textContent = $("customContext").value;
-    const key = $("example").value;
-    $("regionOut").textContent = problems[key]?.region || "Región personalizada";
-    if(c==="polar") polar();
-    if(c==="cartesian") cartesian();
-    if(c==="cylindrical") cylindrical();
-    if(c==="spherical") spherical();
-  }catch(e){ setError(e.message || "Error al calcular."); }
+    $("error").style.display="none";
+    const dim=$("dimension").value, coord=$("coord").value, func=text("func")||"f", region=text("region")||"Región no ingresada";
+    $("funcOut").textContent="f = "+func; $("regionOut").textContent=region; $("suggestOut").textContent=detectSuggestion(region, dim); $("beforeOut").textContent=region;
+    const data=getCoordData(coord, dim, func);
+    $("transformOut").textContent=data.transform; $("jacobianOut").textContent=data.jacobian; $("whyOut").textContent=data.why;
+    $("originalIntegralOut").textContent=dim==="double"?"∫∫_R f(x,y) dA":"∭_E f(x,y,z) dV";
+    $("changedIntegralOut").textContent=data.integral; $("afterOut").textContent=data.limits; $("interpretOut").textContent=data.interpretation;
+    plotRegion(coord, dim);
+  }catch(e){$("error").style.display="block";$("error").textContent=e.message||"No se pudo generar el análisis.";}
 }
-
-function setOutputs(system, transform, jacobian, integral, approx, geo, angles, why){
-  $("systemOut").textContent = system;
-  $("transformOut").textContent = transform;
-  $("jacobianOut").textContent = jacobian;
-  $("integralOut").textContent = integral;
-  $("approxOut").textContent = "≈ " + fmt(approx);
-  $("geoOut").textContent = geo;
-  $("anglesOut").textContent = angles;
-  $("whyOut").textContent = why;
+function detectSuggestion(region, dim){
+  const r=region.replaceAll(" ","").toLowerCase();
+  if(r.includes("x^2+y^2+z^2")||r.includes("x²+y²+z²")) return "La región parece esférica. Revise si las coordenadas esféricas simplifican los límites.";
+  if(r.includes("x^2+y^2")||r.includes("x²+y²")) return dim==="triple"?"La región parece cilíndrica o con base circular. Revise coordenadas cilíndricas.":"La región parece circular. Revise coordenadas polares.";
+  if(r.includes("0<=x")||r.includes("0≤x")) return "La región parece descrita por intervalos. Cartesianas podrían ser suficientes.";
+  return "Analice la forma geométrica antes de elegir el sistema de coordenadas.";
 }
-
-function polar(){
-  const R=n("pR"), T=n("pTheta"), expr=math.parse($("func").value).compile();
-  const rs=range(0,R,60), ts=range(0,T,90), X=[],Y=[],Z=[];
-  for(const r of rs){ const xr=[],yr=[],zr=[]; for(const t of ts){ const x=r*Math.cos(t), y=r*Math.sin(t); xr.push(x); yr.push(y); zr.push(expr.evaluate({x,y,r,theta:t})); } X.push(xr); Y.push(yr); Z.push(zr); }
-  const surf={type:"surface",x:X,y:Y,z:Z,opacity:.9,name:"Superficie"};
-  const base={type:"surface",x:X,y:Y,z:X.map(row=>row.map(()=>0)),opacity:.33,showscale:false,name:"Región en xy"};
-  Plotly.newPlot("plot",[surf,base],layout("x","y","f(x,y)"),{responsive:true});
-  const approx=approxPolar(expr,R,T);
-  setOutputs("Coordenadas polares",
-    "x = r cos(θ), y = r sin(θ)",
-    "dA = r dr dθ",
-    `∫₀^${fmt(R)} ∫₀^${fmt(T)} f(r cosθ, r sinθ) · r dθ dr`,
-    approx,
-    "La región circular se recorre mediante radios que giran alrededor del origen.",
-    "r mide distancia al origen; θ mide el giro en el plano xy.",
-    "El cambio reduce una región circular a límites simples: 0 ≤ r ≤ R y 0 ≤ θ ≤ 2π."
-  );
+function getCoordData(coord, dim, func){
+  if(coord==="cartesian"){const x0=text("xMin")||"a",x1=text("xMax")||"b",y0=text("yMin")||"c",y1=text("yMax")||"d",z0=text("zMin")||"e",z1=text("zMax")||"f"; const limits=dim==="double"?`${x0} ≤ x ≤ ${x1}, ${y0} ≤ y ≤ ${y1}`:`${x0} ≤ x ≤ ${x1}, ${y0} ≤ y ≤ ${y1}, ${z0} ≤ z ≤ ${z1}`; const integral=dim==="double"?`∫_${y0}^${y1} ∫_${x0}^${x1} (${func}) dx dy`:`∫_${z0}^${z1} ∫_${y0}^${y1} ∫_${x0}^${x1} (${func}) dx dy dz`; return {transform:"No se realiza cambio de variables.",jacobian:dim==="double"?"dA = dx dy":"dV = dx dy dz",why:"Útil cuando la región se describe con límites rectangulares o intervalos directos.",limits,integral,interpretation:"La región se conserva en coordenadas cartesianas."};}
+  if(coord==="polar"){const r0=text("rMin")||"0",r1=text("rMax")||"R",t0=text("thetaMin")||"0",t1=text("thetaMax")||"2π"; return {transform:"x = r cos(θ), y = r sin(θ)",jacobian:"dA = r dr dθ",why:"Útil cuando la región tiene forma circular o depende de x²+y².",limits:`${r0} ≤ r ≤ ${r1}, ${t0} ≤ θ ≤ ${t1}`,integral:`∫_${t0}^${t1} ∫_${r0}^${r1} f(r cosθ, r sinθ) · r dr dθ`,interpretation:"La región cartesiana se reescribe mediante distancia al origen y ángulo de giro."};}
+  if(coord==="cylindrical"){const r0=text("crMin")||"0",r1=text("crMax")||"R",t0=text("cthetaMin")||"0",t1=text("cthetaMax")||"2π",z0=text("czMin")||"a",z1=text("czMax")||"b"; return {transform:"x = r cos(θ), y = r sin(θ), z = z",jacobian:"dV = r dr dθ dz",why:"Útil en sólidos con base circular o simetría alrededor del eje z.",limits:`${r0} ≤ r ≤ ${r1}, ${t0} ≤ θ ≤ ${t1}, ${z0} ≤ z ≤ ${z1}`,integral:`∫_${z0}^${z1} ∫_${t0}^${t1} ∫_${r0}^${r1} f(r cosθ, r sinθ, z) · r dr dθ dz`,interpretation:"La base circular se describe con r y θ, mientras z mantiene la altura del sólido."};}
+  const r0=text("rhoMin")||"0",r1=text("rhoMax")||"ρ₀",p0=text("phiMin")||"0",p1=text("phiMax")||"π",t0=text("sthetaMin")||"0",t1=text("sthetaMax")||"2π"; return {transform:"x = ρ sin(φ) cos(θ), y = ρ sin(φ) sin(θ), z = ρ cos(φ)",jacobian:"dV = ρ² sin(φ) dρ dφ dθ",why:"Útil en regiones esféricas o cuando aparece x²+y²+z².",limits:`${r0} ≤ ρ ≤ ${r1}, ${p0} ≤ φ ≤ ${p1}, ${t0} ≤ θ ≤ ${t1}`,integral:`∫_${t0}^${t1} ∫_${p0}^${p1} ∫_${r0}^${r1} f(ρ sinφ cosθ, ρ sinφ sinθ, ρ cosφ) · ρ² sinφ dρ dφ dθ`,interpretation:"La región se recorre con distancia al origen, giro horizontal e inclinación vertical."};
 }
-
-function cartesian(){
-  const X=n("cX"), Y=n("cY"), Z=n("cZ"), expr=math.parse($("func").value).compile();
-  const box={type:"mesh3d",x:[0,X,X,0,0,X,X,0],y:[0,0,Y,Y,0,0,Y,Y],z:[0,0,0,0,Z,Z,Z,Z],
-    i:[0,0,0,4,4,4,0,1,2,3,0,1],j:[1,2,3,5,6,7,1,2,3,0,4,5],k:[2,3,0,6,7,4,5,6,7,4,5,6],opacity:.5,name:"Caja"};
-  Plotly.newPlot("plot",[box],layout("x","y","z"),{responsive:true});
-  const approx=approxCart(expr,X,Y,Z);
-  setOutputs("Coordenadas cartesianas",
-    "No se requiere transformación: se usan x, y, z.",
-    "dV = dx dy dz",
-    `∫₀^${fmt(Z)} ∫₀^${fmt(Y)} ∫₀^${fmt(X)} f(x,y,z) dx dy dz`,
-    approx,
-    "La región rectangular se describe directamente con intervalos en x, y, z.",
-    "No aparecen ángulos porque no hay simetría circular o esférica que aprovechar.",
-    "Los límites ya son simples en cartesianas; cambiar de coordenadas no aporta ventaja."
-  );
-}
-
-function cylindrical(){
-  const R=n("cyR"), H=n("cyH"), expr=math.parse($("func").value).compile();
-  const ts=range(0,2*Math.PI,100), zs=range(0,H,60), X=[],Y=[],Z=[];
-  for(const z of zs){ const xr=[],yr=[],zr=[]; for(const t of ts){ xr.push(R*Math.cos(t)); yr.push(R*Math.sin(t)); zr.push(z); } X.push(xr); Y.push(yr); Z.push(zr); }
-  const side={type:"surface",x:X,y:Y,z:Z,opacity:.72,showscale:false,name:"Cilindro"};
-  const top={type:"scatter3d",mode:"lines",x:ts.map(t=>R*Math.cos(t)),y:ts.map(t=>R*Math.sin(t)),z:ts.map(()=>H),line:{width:6},name:"Borde superior"};
-  Plotly.newPlot("plot",[side,top],layout("x","y","z"),{responsive:true});
-  const approx=approxCyl(expr,R,H);
-  setOutputs("Coordenadas cilíndricas",
-    "x = r cos(θ), y = r sin(θ), z = z",
-    "dV = r dr dθ dz",
-    `∫₀^${fmt(H)} ∫₀^6.2832 ∫₀^${fmt(R)} f(r,z) · r dr dθ dz`,
-    approx,
-    "El cilindro se obtiene al girar una región circular en torno al eje z.",
-    "r mide distancia al eje z; θ recorre la base circular; z mide altura.",
-    "La desigualdad x²+y² ≤ R² se vuelve 0 ≤ r ≤ R, simplificando el planteamiento."
-  );
-}
-
-function spherical(){
-  const R=n("sR"), expr=math.parse($("func").value).compile();
-  const phis=range(0,Math.PI,70), ts=range(0,2*Math.PI,100), X=[],Y=[],Z=[];
-  for(const phi of phis){ const xr=[],yr=[],zr=[]; for(const t of ts){ xr.push(R*Math.sin(phi)*Math.cos(t)); yr.push(R*Math.sin(phi)*Math.sin(t)); zr.push(R*Math.cos(phi)); } X.push(xr); Y.push(yr); Z.push(zr); }
-  const sphere={type:"surface",x:X,y:Y,z:Z,opacity:.68,showscale:false,name:"Esfera"};
-  const meridian={type:"scatter3d",mode:"lines+text",x:[0,0,R*.75],y:[0,0,0],z:[0,R*.75,0],text:["","φ","θ"],textposition:"top center",line:{width:7},name:"Ángulos"};
-  Plotly.newPlot("plot",[sphere,meridian],layout("x","y","z"),{responsive:true});
-  const approx=approxSph(expr,R);
-  setOutputs("Coordenadas esféricas",
-    "x = ρ sin(φ) cos(θ), y = ρ sin(φ) sin(θ), z = ρ cos(φ)",
-    "dV = ρ² sin(φ) dρ dφ dθ",
-    `∫₀^6.2832 ∫₀^3.1416 ∫₀^${fmt(R)} f(ρ,θ,φ) · ρ² sin(φ) dρ dφ dθ`,
-    approx,
-    "La esfera se recorre mediante capas de radio ρ desde el origen.",
-    "ρ mide distancia al origen; θ gira en el plano xy; φ mide inclinación respecto al eje z.",
-    "La desigualdad x²+y²+z² ≤ R² se vuelve 0 ≤ ρ ≤ R, lo que simplifica el volumen."
-  );
-}
-
-function layout(x,y,z){return {margin:{l:0,r:0,b:0,t:8},scene:{xaxis:{title:x},yaxis:{title:y},zaxis:{title:z},camera:{eye:{x:1.5,y:1.5,z:1.1}}},legend:{orientation:"h"}}}
-
-function approxPolar(expr,R,T){let s=0,nr=44,nt=60,dr=R/nr,dt=T/nt;for(let i=0;i<nr;i++){let r=(i+.5)*dr;for(let j=0;j<nt;j++){let theta=(j+.5)*dt,x=r*Math.cos(theta),y=r*Math.sin(theta);s+=expr.evaluate({x,y,r,theta})*r*dr*dt}}return s}
-function approxCart(expr,X,Y,Z){let s=0,n=18,dx=X/n,dy=Y/n,dz=Z/n;for(let i=0;i<n;i++){let x=(i+.5)*dx;for(let j=0;j<n;j++){let y=(j+.5)*dy;for(let k=0;k<n;k++){let z=(k+.5)*dz;s+=expr.evaluate({x,y,z})*dx*dy*dz}}}return s}
-function approxCyl(expr,R,H){let s=0,nr=34,nt=44,nz=26,dr=R/nr,dt=2*Math.PI/nt,dz=H/nz;for(let i=0;i<nr;i++){let r=(i+.5)*dr;for(let j=0;j<nt;j++){let theta=(j+.5)*dt;for(let k=0;k<nz;k++){let z=(k+.5)*dz,x=r*Math.cos(theta),y=r*Math.sin(theta);s+=expr.evaluate({r,theta,z,x,y})*r*dr*dt*dz}}}return s}
-function approxSph(expr,R){let s=0,nr=26,np=30,nt=36,dr=R/nr,dp=Math.PI/np,dt=2*Math.PI/nt;for(let i=0;i<nr;i++){let rho=(i+.5)*dr;for(let j=0;j<np;j++){let phi=(j+.5)*dp;for(let k=0;k<nt;k++){let theta=(k+.5)*dt,x=rho*Math.sin(phi)*Math.cos(theta),y=rho*Math.sin(phi)*Math.sin(theta),z=rho*Math.cos(phi);s+=expr.evaluate({rho,theta,phi,x,y,z})*rho*rho*Math.sin(phi)*dr*dp*dt}}}return s}
-
-showParams();
-loadProblem();
+function plotRegion(coord,dim){if(coord==="polar")return plotPolar();if(coord==="cylindrical")return plotCylindrical();if(coord==="spherical")return plotSpherical();return plotCartesian(dim)}
+function range(a,b,n){const arr=[];const h=(b-a)/(n-1);for(let i=0;i<n;i++)arr.push(a+i*h);return arr}
+function plotPolar(){const R=parseVal(text("rMax")||"3"),T0=parseVal(text("thetaMin")||"0"),T1=parseVal(text("thetaMax")||"2*pi");const rs=range(0,R,40),ts=range(T0,T1,70),X=[],Y=[],Z=[];for(const r of rs){const xr=[],yr=[],zr=[];for(const t of ts){xr.push(r*Math.cos(t));yr.push(r*Math.sin(t));zr.push(0)}X.push(xr);Y.push(yr);Z.push(zr)}Plotly.newPlot("plot",[{type:"surface",x:X,y:Y,z:Z,opacity:.75,showscale:false,name:"Región polar"}],layout("x","y","z"),{responsive:true})}
+function plotCartesian(dim){const X=parseVal(text("xMax")||"3"),Y=parseVal(text("yMax")||"3"),Z=dim==="triple"?parseVal(text("zMax")||"3"):0.1;const mesh={type:"mesh3d",x:[0,X,X,0,0,X,X,0],y:[0,0,Y,Y,0,0,Y,Y],z:[0,0,0,0,Z,Z,Z,Z],i:[0,0,0,4,4,4,0,1,2,3,0,1],j:[1,2,3,5,6,7,1,2,3,0,4,5],k:[2,3,0,6,7,4,5,6,7,4,5,6],opacity:.55,name:"Región cartesiana"};Plotly.newPlot("plot",[mesh],layout("x","y","z"),{responsive:true})}
+function plotCylindrical(){const R=parseVal(text("crMax")||"3"),H=parseVal(text("czMax")||"4");const ts=range(0,2*Math.PI,80),zs=range(0,H,45),X=[],Y=[],Z=[];for(const z of zs){const xr=[],yr=[],zr=[];for(const t of ts){xr.push(R*Math.cos(t));yr.push(R*Math.sin(t));zr.push(z)}X.push(xr);Y.push(yr);Z.push(zr)}Plotly.newPlot("plot",[{type:"surface",x:X,y:Y,z:Z,opacity:.7,showscale:false,name:"Cilindro"}],layout("x","y","z"),{responsive:true})}
+function plotSpherical(){const R=parseVal(text("rhoMax")||"3");const phis=range(0,Math.PI,45),ts=range(0,2*Math.PI,75),X=[],Y=[],Z=[];for(const p of phis){const xr=[],yr=[],zr=[];for(const t of ts){xr.push(R*Math.sin(p)*Math.cos(t));yr.push(R*Math.sin(p)*Math.sin(t));zr.push(R*Math.cos(p))}X.push(xr);Y.push(yr);Z.push(zr)}Plotly.newPlot("plot",[{type:"surface",x:X,y:Y,z:Z,opacity:.7,showscale:false,name:"Esfera"}],layout("x","y","z"),{responsive:true})}
+function layout(x,y,z){return{margin:{l:0,r:0,b:0,t:8},scene:{xaxis:{title:x},yaxis:{title:y},zaxis:{title:z},camera:{eye:{x:1.5,y:1.5,z:1.1}}}}}
+updatePanels();
+generate();
 </script>
 </body>
 </html>
