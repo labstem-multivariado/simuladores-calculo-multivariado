@@ -35,7 +35,7 @@
     .hint{font-size:.88rem;color:var(--muted);margin-top:6px}
     .mini-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
     .mini{background:#fbfbff;border:1px solid var(--line);border-radius:12px;padding:12px}
-    .math{font-family:Consolas,Monaco,monospace;background:var(--code);border:1px solid #e5e7eb;border-radius:8px;padding:9px;overflow-x:auto}
+    .math{font-family:Consolas,Monaco,monospace;background:var(--code);border:1px solid #e5e7eb;border-radius:8px;padding:9px;overflow-x:auto;white-space:pre-wrap}
     .badge{display:inline-block;background:var(--gold-soft);border:1px solid #ead9a4;color:#705500;border-radius:999px;padding:3px 8px;font-weight:800;font-size:.78rem}
     .tabs{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;background:#fff;border-bottom:1px solid var(--line)}
     .tab{background:#fff;color:var(--ink);border:1px solid var(--line);padding:8px 12px;border-radius:999px}
@@ -68,11 +68,10 @@
 
     <label for="func">Función a integrar</label>
     <input id="func" value="" placeholder="Ejemplo: x^2+y^2" />
-    <p class="hint">Ingrese la función que aparece en su problema. Use <code>*</code> para multiplicar y <code>^</code> para potencias.</p>
+    <p class="hint">Ingrese la función del problema. Para raíces use <code>sqrt(9-x^2)</code>.</p>
 
     <label for="region">Región en coordenadas cartesianas</label>
     <textarea id="region" placeholder="Ejemplo: x^2 + y^2 <= 9"></textarea>
-    <p class="hint">Escriba la región como aparece en el enunciado. El simulador dará una sugerencia geométrica, pero usted debe verificarla.</p>
 
     <label for="coord">Cambio de coordenadas que desea explorar</label>
     <select id="coord">
@@ -189,11 +188,14 @@ function updatePanels(){
   $("sphLimits").style.display=c==="spherical"?"block":"none";
 }
 function loadPractice(){
-  $("dimension").value="double"; $("func").value="25-x^2-y^2"; $("region").value="x^2 + y^2 <= 25"; $("coord").value="polar";
-  $("rMin").value="0"; $("rMax").value="5"; $("thetaMin").value="0"; $("thetaMax").value="2*pi";
+  $("dimension").value="double"; $("func").value="25-x^2-y^2"; $("region").value="x^2 + y^2 <= 25"; $("coord").value="cartesian";
+  $("xMin").value="-5"; $("xMax").value="5"; $("yMin").value="-sqrt(25-x^2)"; $("yMax").value="sqrt(25-x^2)";
   updatePanels(); generate();
 }
-function parseVal(expr){try{return math.evaluate(expr)}catch(e){return Number(expr)}}
+function parseVal(expr, scope={}){
+  try{return math.evaluate(String(expr).replaceAll("π","pi"), scope)}
+  catch(e){return Number(expr)}
+}
 function text(id){return $(id).value.trim()}
 function generate(){
   try{
@@ -215,18 +217,39 @@ function detectSuggestion(region, dim){
   return "Analice la forma geométrica antes de elegir el sistema de coordenadas.";
 }
 function getCoordData(coord, dim, func){
-  if(coord==="cartesian"){const x0=text("xMin")||"a",x1=text("xMax")||"b",y0=text("yMin")||"c",y1=text("yMax")||"d",z0=text("zMin")||"e",z1=text("zMax")||"f"; const limits=dim==="double"?`${x0} ≤ x ≤ ${x1}, ${y0} ≤ y ≤ ${y1}`:`${x0} ≤ x ≤ ${x1}, ${y0} ≤ y ≤ ${y1}, ${z0} ≤ z ≤ ${z1}`; const integral=dim==="double"?`∫_${y0}^${y1} ∫_${x0}^${x1} (${func}) dx dy`:`∫_${z0}^${z1} ∫_${y0}^${y1} ∫_${x0}^${x1} (${func}) dx dy dz`; return {transform:"No se realiza cambio de variables.",jacobian:dim==="double"?"dA = dx dy":"dV = dx dy dz",why:"Útil cuando la región se describe con límites rectangulares o intervalos directos.",limits,integral,interpretation:"La región se conserva en coordenadas cartesianas."};}
+  if(coord==="cartesian"){const x0=text("xMin")||"a",x1=text("xMax")||"b",y0=text("yMin")||"c",y1=text("yMax")||"d",z0=text("zMin")||"e",z1=text("zMax")||"f"; const limits=dim==="double"?`${x0} ≤ x ≤ ${x1}, ${y0} ≤ y ≤ ${y1}`:`${x0} ≤ x ≤ ${x1}, ${y0} ≤ y ≤ ${y1}, ${z0} ≤ z ≤ ${z1}`; const integral=dim==="double"?`∫_${x0}^${x1} ∫_${y0}^${y1} (${func}) dy dx`:`∫_${x0}^${x1} ∫_${y0}^${y1} ∫_${z0}^${z1} (${func}) dz dy dx`; return {transform:"No se realiza cambio de variables.",jacobian:dim==="double"?"dA = dy dx":"dV = dz dy dx",why:"Útil cuando la región se describe con límites directos. También permite graficar regiones con límites dependientes, como y = ±sqrt(9-x^2).",limits,integral,interpretation:"La región se conserva en coordenadas cartesianas."};}
   if(coord==="polar"){const r0=text("rMin")||"0",r1=text("rMax")||"R",t0=text("thetaMin")||"0",t1=text("thetaMax")||"2π"; return {transform:"x = r cos(θ), y = r sin(θ)",jacobian:"dA = r dr dθ",why:"Útil cuando la región tiene forma circular o depende de x²+y².",limits:`${r0} ≤ r ≤ ${r1}, ${t0} ≤ θ ≤ ${t1}`,integral:`∫_${t0}^${t1} ∫_${r0}^${r1} f(r cosθ, r sinθ) · r dr dθ`,interpretation:"La región cartesiana se reescribe mediante distancia al origen y ángulo de giro."};}
   if(coord==="cylindrical"){const r0=text("crMin")||"0",r1=text("crMax")||"R",t0=text("cthetaMin")||"0",t1=text("cthetaMax")||"2π",z0=text("czMin")||"a",z1=text("czMax")||"b"; return {transform:"x = r cos(θ), y = r sin(θ), z = z",jacobian:"dV = r dr dθ dz",why:"Útil en sólidos con base circular o simetría alrededor del eje z.",limits:`${r0} ≤ r ≤ ${r1}, ${t0} ≤ θ ≤ ${t1}, ${z0} ≤ z ≤ ${z1}`,integral:`∫_${z0}^${z1} ∫_${t0}^${t1} ∫_${r0}^${r1} f(r cosθ, r sinθ, z) · r dr dθ dz`,interpretation:"La base circular se describe con r y θ, mientras z mantiene la altura del sólido."};}
   const r0=text("rhoMin")||"0",r1=text("rhoMax")||"ρ₀",p0=text("phiMin")||"0",p1=text("phiMax")||"π",t0=text("sthetaMin")||"0",t1=text("sthetaMax")||"2π"; return {transform:"x = ρ sin(φ) cos(θ), y = ρ sin(φ) sin(θ), z = ρ cos(φ)",jacobian:"dV = ρ² sin(φ) dρ dφ dθ",why:"Útil en regiones esféricas o cuando aparece x²+y²+z².",limits:`${r0} ≤ ρ ≤ ${r1}, ${p0} ≤ φ ≤ ${p1}, ${t0} ≤ θ ≤ ${t1}`,integral:`∫_${t0}^${t1} ∫_${p0}^${p1} ∫_${r0}^${r1} f(ρ sinφ cosθ, ρ sinφ sinθ, ρ cosφ) · ρ² sinφ dρ dφ dθ`,interpretation:"La región se recorre con distancia al origen, giro horizontal e inclinación vertical."};
 }
 function plotRegion(coord,dim){if(coord==="polar")return plotPolar();if(coord==="cylindrical")return plotCylindrical();if(coord==="spherical")return plotSpherical();return plotCartesian(dim)}
 function range(a,b,n){const arr=[];const h=(b-a)/(n-1);for(let i=0;i<n;i++)arr.push(a+i*h);return arr}
+function plotCartesian(dim){
+  const x0=parseVal(text("xMin")||"0"), x1=parseVal(text("xMax")||"3");
+  const yMinExpr=text("yMin")||"0", yMaxExpr=text("yMax")||"3";
+  const dynamicY = /[a-zA-Z]/.test(yMinExpr.replace(/sqrt|pi|sin|cos|tan|abs|log|exp/g,"")) || /[a-zA-Z]/.test(yMaxExpr.replace(/sqrt|pi|sin|cos|tan|abs|log|exp/g,""));
+  if(dim==="double" && dynamicY){
+    const xs=range(x0,x1,90), X=[],Y=[],Z=[];
+    for(let j=0;j<2;j++){X.push([]);Y.push([]);Z.push([]);}
+    for(const x of xs){
+      const ymin=parseVal(yMinExpr,{x}), ymax=parseVal(yMaxExpr,{x});
+      X[0].push(x); Y[0].push(ymin); Z[0].push(0);
+      X[1].push(x); Y[1].push(ymax); Z[1].push(0);
+    }
+    const region={type:"surface",x:X,y:Y,z:Z,opacity:.75,showscale:false,name:"Región con límites dependientes"};
+    const lower={type:"scatter3d",mode:"lines",x:X[0],y:Y[0],z:Z[0],line:{width:5},name:"Límite inferior"};
+    const upper={type:"scatter3d",mode:"lines",x:X[1],y:Y[1],z:Z[1],line:{width:5},name:"Límite superior"};
+    Plotly.newPlot("plot",[region,lower,upper],layout("x","y","z"),{responsive:true});
+    return;
+  }
+  const X=x1, Y=parseVal(yMaxExpr||"3"), Z=dim==="triple"?parseVal(text("zMax")||"3"):0.1;
+  const mesh={type:"mesh3d",x:[0,X,X,0,0,X,X,0],y:[0,0,Y,Y,0,0,Y,Y],z:[0,0,0,0,Z,Z,Z,Z],i:[0,0,0,4,4,4,0,1,2,3,0,1],j:[1,2,3,5,6,7,1,2,3,0,4,5],k:[2,3,0,6,7,4,5,6,7,4,5,6],opacity:.55,name:"Región cartesiana"};
+  Plotly.newPlot("plot",[mesh],layout("x","y","z"),{responsive:true});
+}
 function plotPolar(){const R=parseVal(text("rMax")||"3"),T0=parseVal(text("thetaMin")||"0"),T1=parseVal(text("thetaMax")||"2*pi");const rs=range(0,R,40),ts=range(T0,T1,70),X=[],Y=[],Z=[];for(const r of rs){const xr=[],yr=[],zr=[];for(const t of ts){xr.push(r*Math.cos(t));yr.push(r*Math.sin(t));zr.push(0)}X.push(xr);Y.push(yr);Z.push(zr)}Plotly.newPlot("plot",[{type:"surface",x:X,y:Y,z:Z,opacity:.75,showscale:false,name:"Región polar"}],layout("x","y","z"),{responsive:true})}
-function plotCartesian(dim){const X=parseVal(text("xMax")||"3"),Y=parseVal(text("yMax")||"3"),Z=dim==="triple"?parseVal(text("zMax")||"3"):0.1;const mesh={type:"mesh3d",x:[0,X,X,0,0,X,X,0],y:[0,0,Y,Y,0,0,Y,Y],z:[0,0,0,0,Z,Z,Z,Z],i:[0,0,0,4,4,4,0,1,2,3,0,1],j:[1,2,3,5,6,7,1,2,3,0,4,5],k:[2,3,0,6,7,4,5,6,7,4,5,6],opacity:.55,name:"Región cartesiana"};Plotly.newPlot("plot",[mesh],layout("x","y","z"),{responsive:true})}
 function plotCylindrical(){const R=parseVal(text("crMax")||"3"),H=parseVal(text("czMax")||"4");const ts=range(0,2*Math.PI,80),zs=range(0,H,45),X=[],Y=[],Z=[];for(const z of zs){const xr=[],yr=[],zr=[];for(const t of ts){xr.push(R*Math.cos(t));yr.push(R*Math.sin(t));zr.push(z)}X.push(xr);Y.push(yr);Z.push(zr)}Plotly.newPlot("plot",[{type:"surface",x:X,y:Y,z:Z,opacity:.7,showscale:false,name:"Cilindro"}],layout("x","y","z"),{responsive:true})}
 function plotSpherical(){const R=parseVal(text("rhoMax")||"3");const phis=range(0,Math.PI,45),ts=range(0,2*Math.PI,75),X=[],Y=[],Z=[];for(const p of phis){const xr=[],yr=[],zr=[];for(const t of ts){xr.push(R*Math.sin(p)*Math.cos(t));yr.push(R*Math.sin(p)*Math.sin(t));zr.push(R*Math.cos(p))}X.push(xr);Y.push(yr);Z.push(zr)}Plotly.newPlot("plot",[{type:"surface",x:X,y:Y,z:Z,opacity:.7,showscale:false,name:"Esfera"}],layout("x","y","z"),{responsive:true})}
-function layout(x,y,z){return{margin:{l:0,r:0,b:0,t:8},scene:{xaxis:{title:x},yaxis:{title:y},zaxis:{title:z},camera:{eye:{x:1.5,y:1.5,z:1.1}}}}}
+function layout(x,y,z){return{margin:{l:0,r:0,b:0,t:8},scene:{xaxis:{title:x},yaxis:{title:y},zaxis:{title:z},camera:{eye:{x:1.35,y:1.35,z:1.1}}}}}
 updatePanels();
 generate();
 </script>
