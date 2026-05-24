@@ -1,59 +1,67 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lab Multivariado - Simuladores</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Multivariado</title>
   <style>
-    :root{--primary:#4f46e5;--primary-dark:#312e81;--bg:#f7f7fb;--card:#ffffff;--text:#1f2937;--muted:#6b7280;--border:#d1d5db}
+    :root{
+      --ink:#1f2937; --muted:#6b7280; --gold:#c59b2c; --gold-soft:#f8f1da;
+      --navy:#111827; --line:#d1d5db; --bg:#f6f7fb; --card:#ffffff;
+      --blue:#2563eb; --green:#059669;
+    }
     *{box-sizing:border-box}
-    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
-    header{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:white;padding:42px 20px;text-align:center}
-    header h1{margin:0 0 10px;font-size:clamp(1.8rem,4vw,2.7rem)}
-    header p{margin:0 auto;max-width:820px;font-size:1.05rem;opacity:.95}
-    main{width:min(1080px,92vw);margin:28px auto}
-    .intro,.card{background:white;border:1px solid var(--border);border-radius:18px;padding:22px;box-shadow:0 8px 20px rgba(0,0,0,.06)}
-    .intro{margin-bottom:22px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:18px}
-    .card h2{margin:0 0 8px;color:var(--primary-dark);font-size:1.25rem}
-    .card p{color:var(--muted)}
-    .tag{display:inline-block;font-size:.8rem;background:#eef2ff;color:#312e81;padding:4px 8px;border-radius:999px;margin-bottom:8px;font-weight:700}
-    .btn{display:inline-block;margin-top:8px;background:var(--primary);color:white;text-decoration:none;padding:10px 14px;border-radius:12px;font-weight:700}
-    .btn:hover{background:var(--primary-dark)}
-    footer{width:min(1080px,92vw);margin:30px auto;color:var(--muted);font-size:.92rem}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+    header{
+      background:
+        radial-gradient(circle at top left, rgba(197,155,44,.35), transparent 35%),
+        linear-gradient(135deg,#111827,#1e3a8a);
+      color:white;padding:46px 20px;text-align:center;border-bottom:6px solid var(--gold)
+    }
+    header h1{margin:0 0 8px;font-size:clamp(2rem,4vw,3rem);letter-spacing:.5px}
+    header p{margin:0 auto;max-width:850px;opacity:.95}
+    main{width:min(1120px,94vw);margin:28px auto}
+    .intro{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:0 12px 30px rgba(0,0,0,.07);margin-bottom:22px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 12px 30px rgba(0,0,0,.07)}
+    .tag{display:inline-block;background:var(--gold-soft);color:#7c5b00;border:1px solid #ead9a4;border-radius:999px;padding:4px 9px;font-size:.8rem;font-weight:700}
+    h2{color:#111827;margin:.7rem 0}
+    .btn{display:inline-block;background:var(--navy);color:white;text-decoration:none;padding:10px 14px;border-radius:12px;font-weight:700}
+    .btn:hover{background:#374151}
+    footer{width:min(1120px,94vw);margin:28px auto;color:var(--muted);font-size:.92rem}
   </style>
 </head>
 <body>
-  <header>
-    <h1>Lab Multivariado</h1>
-    <p>Simuladores interactivos para apoyar la visualización, modelación y solución de problemas de Cálculo Multivariado.</p>
-  </header>
-  <main>
-    <section class="intro">
-      <h2>Curso: Cálculo Multivariado</h2>
-      <p>Este laboratorio reúne recursos digitales para explorar funciones de varias variables, gradiente, integración múltiple, cambios de coordenadas y aplicaciones en ingeniería.</p>
-    </section>
-    <section class="grid">
-      <article class="card">
-        <span class="tag">Tarea 2</span>
-        <h2>Simulador de gradiente</h2>
-        <p>Evalúa el gradiente en un punto y visualiza la dirección de máximo crecimiento.</p>
-        <a class="btn" href="simuladores/gradiente/">Abrir simulador</a>
-      </article>
-      <article class="card">
-        <span class="tag">Tarea 3</span>
-        <h2>Simulador de integración múltiple</h2>
-        <p>Explora regiones, transformaciones, jacobianos e integrales en coordenadas cartesianas, polares, cilíndricas y esféricas.</p>
-        <a class="btn" href="simuladores/integracion/">Abrir simulador</a>
-      </article>
-      <article class="card">
-        <span class="tag">Tarea 2</span>
-        <h2>Simulador de Lagrange</h2>
-        <p>Recurso externo para interpretar optimización restringida mediante multiplicadores de Lagrange.</p>
-        <a class="btn" href="https://dmbourbaki.github.io/recursos/lagrange.html" target="_blank" rel="noopener">Abrir recurso</a>
-      </article>
-    </section>
-  </main>
-  <footer><p>Universidad Nacional Abierta y a Distancia - Recurso académico de apoyo para Cálculo Multivariado.</p></footer>
+<header>
+  <h1>Lab Multivariado</h1>
+  <p>Simuladores interactivos para modelar, visualizar e interpretar problemas de Cálculo Multivariado en contextos de ingeniería.</p>
+</header>
+<main>
+  <section class="intro">
+    <h2>Curso: Cálculo Multivariado</h2>
+    <p>Este laboratorio acompaña el desarrollo de tareas basadas en problemas. Cada recurso busca fortalecer la interpretación geométrica, el pensamiento computacional y la toma de decisiones mediante herramientas de simulación.</p>
+  </section>
+  <section class="grid">
+    <article class="card">
+      <span class="tag">Tarea 2</span>
+      <h2>Simulador de gradiente</h2>
+      <p>Calcula y visualiza la dirección de máximo crecimiento de una función de dos variables.</p>
+      <a class="btn" href="simuladores/gradiente/">Abrir simulador</a>
+    </article>
+    <article class="card">
+      <span class="tag">Tarea 3</span>
+      <h2>Simulador de integración múltiple</h2>
+      <p>Explora regiones, cambios de coordenadas, jacobianos, integrales sugeridas y visualizaciones 2D/3D.</p>
+      <a class="btn" href="simuladores/integracion/">Abrir simulador</a>
+    </article>
+    <article class="card">
+      <span class="tag">Tarea 2</span>
+      <h2>Simulador de Lagrange</h2>
+      <p>Recurso externo para optimización restringida con multiplicadores de Lagrange.</p>
+      <a class="btn" target="_blank" rel="noopener" href="https://dmbourbaki.github.io/recursos/lagrange.html">Abrir recurso</a>
+    </article>
+  </section>
+</main>
+<footer>Universidad Nacional Abierta y a Distancia - Recurso académico de apoyo.</footer>
 </body>
 </html>
