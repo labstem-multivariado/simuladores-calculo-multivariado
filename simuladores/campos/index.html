@@ -1,289 +1,407 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Simulador de Cálculo Vectorial y Maxwell</title>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
-<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-
-<style>
-body{
-  font-family: Arial, sans-serif;
-  background:#f4f6fb;
-  margin:0;
-  padding:20px;
-  color:#222;
-}
-.container{
-  max-width:1200px;
-  margin:auto;
-}
-.card{
-  background:white;
-  padding:20px;
-  margin-bottom:20px;
-  border-radius:14px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.08);
-}
-h1,h2{
-  color:#263159;
-}
-label{
-  font-weight:bold;
-  display:block;
-  margin-top:10px;
-}
-input,select,button{
-  width:100%;
-  padding:10px;
-  margin-top:5px;
-  border-radius:8px;
-  border:1px solid #ccc;
-  font-size:15px;
-}
-button{
-  background:#6c3fcf;
-  color:white;
-  font-weight:bold;
-  cursor:pointer;
-  margin-top:20px;
-}
-button:hover{
-  background:#5430a8;
-}
-.output{
-  background:#eef0ff;
-  padding:15px;
-  border-radius:10px;
-  margin-top:15px;
-}
-#plot{
-  width:100%;
-  height:600px;
-}
-.small{
-  font-size:14px;
-  color:#555;
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulador de Campos Vectoriales y Maxwell</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/13.2.0/math.min.js"></script>
+  <style>
+    :root{
+      --bg:#f4f6f8; --card:#fff; --ink:#1f2937; --muted:#6b7280; --line:#d1d5db;
+      --navy:#111827; --gold:#c59b2c; --gold-soft:#f8f1da; --code:#f3f4f6;
+      --warn:#fff7ed; --warn-line:#f97316; --blue:#1f77b4;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--ink);line-height:1.45}
+    header{background:#fff;border-bottom:4px solid var(--navy);padding:18px 26px;display:flex;align-items:center;gap:14px;box-shadow:0 3px 10px rgba(0,0,0,.05)}
+    .logo{width:40px;height:40px;border:2px solid var(--gold);display:grid;place-items:center;color:var(--gold);font-weight:900}
+    header h1{margin:0;font-size:1.42rem}
+    header small{color:var(--muted)}
+    .home{margin-left:auto;color:var(--navy);font-weight:700;text-decoration:none}
+    main{width:min(1360px,96vw);margin:20px auto;display:grid;grid-template-columns:410px 1fr;gap:18px}
+    @media(max-width:1000px){main{grid-template-columns:1fr} header{display:block}.home{display:inline-block;margin-top:8px}}
+    .panel,.section{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 26px rgba(0,0,0,.06)}
+    .panel{padding:18px}.section{margin-bottom:16px;overflow:hidden}
+    .section-title{background:#fff;border-bottom:2px solid var(--navy);padding:12px 16px;text-transform:uppercase;letter-spacing:2px;font-size:.82rem;font-weight:900;color:#554018}
+    .section-body{padding:16px}
+    label{display:block;font-weight:800;margin:13px 0 6px}
+    input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:white;font-size:1rem}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    button{border:0;border-radius:11px;padding:11px 14px;background:var(--navy);color:white;font-weight:800;cursor:pointer}
+    button:hover{background:#374151}
+    .primary{width:100%;margin-top:15px;background:var(--gold);color:#111}
+    .secondary{background:#fff;color:#111;border:1px solid var(--line);margin-top:8px;width:100%}
+    .hint{font-size:.88rem;color:var(--muted);margin-top:6px}
+    .mini-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+    .mini{background:#fbfbff;border:1px solid var(--line);border-radius:12px;padding:12px}
+    .math{font-family:Consolas,Monaco,monospace;background:var(--code);border:1px solid #e5e7eb;border-radius:8px;padding:9px;overflow-x:auto;white-space:pre-wrap}
+    .badge{display:inline-block;background:var(--gold-soft);border:1px solid #ead9a4;color:#705500;border-radius:999px;padding:3px 8px;font-weight:800;font-size:.78rem}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;background:#fff;border-bottom:1px solid var(--line)}
+    .tab{background:#fff;color:var(--ink);border:1px solid var(--line);padding:8px 12px;border-radius:999px}
+    .tab.active{background:var(--navy);color:#fff}
+    .tab-panel{display:none;padding:16px}.tab-panel.active{display:block}
+    #plot{height:650px;width:100%}
+    .error{display:none;background:var(--warn);border-left:5px solid var(--warn-line);border-radius:10px;padding:12px;margin-top:12px}
+    footer{width:min(1360px,96vw);margin:0 auto 30px;color:var(--muted);font-size:.9rem}
+  </style>
 </head>
-
 <body>
-<div class="container">
+<header>
+  <div class="logo">∇</div>
+  <div>
+    <h1>Simulador de Campos Vectoriales y Maxwell</h1>
+    <small>Campo vectorial, divergencia, rotacional, flujo, circulación e interpretación física inicial</small>
+  </div>
+  <a class="home" href="../../">Volver al Lab</a>
+</header>
 
-<div class="card">
-<h1>Simulador de Cálculo Vectorial y Ecuaciones de Maxwell</h1>
-<p>
-Este simulador permite explorar campos vectoriales, calcular divergencia, rotacional
-y relacionar estos conceptos con las ecuaciones de Maxwell.
-</p>
-</div>
+<main>
+  <aside class="panel">
+    <h2>Campo vectorial</h2>
+    <p class="hint">Ingrese las componentes del campo F=(P,Q,R). Use <code>x</code>, <code>y</code>, <code>z</code>, <code>*</code> para multiplicar y <code>^</code> para potencias.</p>
 
-<div class="card">
-<h2>1. Definición del campo vectorial</h2>
+    <label for="P">P(x,y,z)</label>
+    <input id="P" value="x" />
 
-<label>Componente P(x,y,z)</label>
-<input id="P" value="x">
+    <label for="Q">Q(x,y,z)</label>
+    <input id="Q" value="y" />
 
-<label>Componente Q(x,y,z)</label>
-<input id="Q" value="y">
+    <label for="R">R(x,y,z)</label>
+    <input id="R" value="z" />
 
-<label>Componente R(x,y,z)</label>
-<input id="R" value="z">
+    <label for="mode">Visualización</label>
+    <select id="mode">
+      <option value="3d">Campo 3D</option>
+      <option value="xy">Plano xy</option>
+      <option value="xz">Plano xz</option>
+      <option value="yz">Plano yz</option>
+    </select>
 
-<label>Tipo de campo</label>
-<select id="fieldType">
-<option value="electric">Campo eléctrico E</option>
-<option value="magnetic">Campo magnético B</option>
-</select>
+    <div class="row">
+      <div><label for="min">Mínimo</label><input id="min" type="number" value="-2" step="any" /></div>
+      <div><label for="max">Máximo</label><input id="max" type="number" value="2" step="any" /></div>
+    </div>
 
-<label>Fenómeno físico</label>
-<select id="phenomenon">
-<option value="flux">Flujo / divergencia</option>
-<option value="circulation">Circulación / rotacional</option>
-</select>
+    <label for="density">Densidad visual</label>
+    <select id="density">
+      <option value="4">Baja</option>
+      <option value="5" selected>Media</option>
+      <option value="7">Alta</option>
+    </select>
 
-<button onclick="runSimulator()">Calcular y graficar</button>
-</div>
+    <label for="vectorSize">Tamaño de los vectores</label>
+    <select id="vectorSize">
+      <option value="0.45">Corto</option>
+      <option value="0.70" selected>Medio</option>
+      <option value="0.95">Largo</option>
+    </select>
 
-<div class="card">
-<h2>2. Resultados matemáticos</h2>
-<div id="mathOut" class="output"></div>
-</div>
+    <label for="normalize">Escala visual</label>
+    <select id="normalize">
+      <option value="directional">Dirección normalizada</option>
+      <option value="magnitude" selected>Magnitud proporcional</option>
+    </select>
 
-<div class="card">
-<h2>3. Interpretación física con Maxwell</h2>
-<div id="maxwellOut" class="output"></div>
-</div>
+    <button class="primary" id="generate">Generar análisis</button>
+    <button class="secondary" id="practice">Cargar ejemplo de práctica no evaluativo</button>
+    <div id="error" class="error"></div>
+  </aside>
 
-<div class="card">
-<h2>4. Visualización del campo vectorial</h2>
-<div id="plot"></div>
-</div>
+  <section>
+    <div class="section">
+      <div class="section-title">1. Campo vectorial ingresado</div>
+      <div class="section-body">
+        <div class="mini-grid">
+          <div class="mini"><span class="badge">Campo</span><p class="math" id="fieldOut"></p></div>
+          <div class="mini"><span class="badge">Lectura inicial</span><p id="initialOut"></p></div>
+          <div class="mini"><span class="badge">Uso en la tarea</span><p>Use esta visualización para describir dirección, expansión, rotación, flujo o circulación inicial del fenómeno.</p></div>
+        </div>
+      </div>
+    </div>
 
-</div>
+    <div class="section">
+      <div class="section-title">2. Operadores del cálculo vectorial</div>
+      <div class="section-body">
+        <div class="mini-grid">
+          <div class="mini"><strong>Divergencia</strong><p class="math" id="divOut"></p><p id="divText"></p></div>
+          <div class="mini"><strong>Rotacional</strong><p class="math" id="curlOut"></p><p id="curlText"></p></div>
+          <div class="mini"><strong>Interpretación Maxwell</strong><p id="maxwellOut"></p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="tabs">
+        <button class="tab active" data-tab="visual">Visualización</button>
+        <button class="tab" data-tab="theorems">Teoremas</button>
+        <button class="tab" data-tab="maxwell">Maxwell</button>
+        <button class="tab" data-tab="task">Para responder en la tarea</button>
+      </div>
+
+      <div id="visual" class="tab-panel active"><div id="plot"></div></div>
+
+      <div id="theorems" class="tab-panel">
+        <div class="mini-grid">
+          <div class="mini"><strong>Teorema de Green</strong><p>Relaciona circulación en una curva cerrada plana con una integral doble sobre la región encerrada.</p><p class="math">∮C P dx + Q dy = ∬R (∂Q/∂x - ∂P/∂y) dA</p></div>
+          <div class="mini"><strong>Teorema de Stokes</strong><p>Relaciona la circulación de un campo sobre una curva cerrada con el rotacional sobre una superficie.</p><p class="math">∮C F · dr = ∬S (∇ × F) · n dS</p></div>
+          <div class="mini"><strong>Teorema de la Divergencia</strong><p>Relaciona el flujo a través de una superficie cerrada con la divergencia dentro del volumen.</p><p class="math">∯S F · n dS = ∭V ∇ · F dV</p></div>
+        </div>
+      </div>
+
+      <div id="maxwell" class="tab-panel">
+        <div class="mini-grid">
+          <div class="mini"><strong>Ley de Gauss eléctrica</strong><p class="math">∇ · E = ρ/ε₀</p><p>La divergencia del campo eléctrico se asocia con fuentes de carga.</p></div>
+          <div class="mini"><strong>Ley de Gauss magnética</strong><p class="math">∇ · B = 0</p><p>Un campo magnético ideal no presenta fuentes o sumideros aislados.</p></div>
+          <div class="mini"><strong>Ley de Faraday</strong><p class="math">∇ × E = -∂B/∂t</p><p>El rotacional del campo eléctrico se relaciona con cambios del campo magnético.</p></div>
+          <div class="mini"><strong>Ampère-Maxwell</strong><p class="math">∇ × B = μ₀J + μ₀ε₀ ∂E/∂t</p><p>El rotacional del campo magnético se asocia con corriente y variación del campo eléctrico.</p></div>
+        </div>
+      </div>
+
+      <div id="task" class="tab-panel">
+        <div class="mini-grid">
+          <div class="mini"><strong>1. Componentes</strong><p>Registre P, Q y R del campo asignado.</p></div>
+          <div class="mini"><strong>2. Visualización</strong><p>Incluya captura del campo y describa el comportamiento observado.</p></div>
+          <div class="mini"><strong>3. Interpretación inicial</strong><p>Indique si observa tendencia a expansión, compresión, rotación, flujo o circulación.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>Lab Multivariado. Recurso pedagógico para explorar campos vectoriales y su relación con teoremas del cálculo vectorial y Maxwell.</footer>
 
 <script>
-function $(id){
-  return document.getElementById(id);
+const $ = id => document.getElementById(id);
+
+document.querySelectorAll(".tab").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach(p=>p.classList.remove("active"));
+    btn.classList.add("active");
+    $(btn.dataset.tab).classList.add("active");
+  });
+});
+
+$("generate").addEventListener("click", generate);
+$("practice").addEventListener("click", () => {
+  $("P").value = "-y";
+  $("Q").value = "x";
+  $("R").value = "0";
+  $("mode").value = "xy";
+  $("normalize").value = "magnitude";
+  generate();
+});
+
+function text(id){ return $(id).value.trim(); }
+function fmtNode(node){ return node.toString().replaceAll("*",""); }
+
+function generate(){
+  try{
+    $("error").style.display = "none";
+    const Ptxt = text("P") || "0";
+    const Qtxt = text("Q") || "0";
+    const Rtxt = text("R") || "0";
+
+    const P = math.parse(Ptxt);
+    const Q = math.parse(Qtxt);
+    const R = math.parse(Rtxt);
+
+    const dPdx = math.derivative(P, "x");
+    const dQdy = math.derivative(Q, "y");
+    const dRdz = math.derivative(R, "z");
+    const divNode = math.simplify(`(${dPdx.toString()})+(${dQdy.toString()})+(${dRdz.toString()})`);
+
+    const curlX = math.simplify(`(${math.derivative(R,"y").toString()})-(${math.derivative(Q,"z").toString()})`);
+    const curlY = math.simplify(`(${math.derivative(P,"z").toString()})-(${math.derivative(R,"x").toString()})`);
+    const curlZ = math.simplify(`(${math.derivative(Q,"x").toString()})-(${math.derivative(P,"y").toString()})`);
+
+    $("fieldOut").textContent = `F(x,y,z)=(${Ptxt}, ${Qtxt}, ${Rtxt})`;
+    $("divOut").textContent = `∇·F = ${fmtNode(divNode)}`;
+    $("curlOut").textContent = `∇×F = (${fmtNode(curlX)}, ${fmtNode(curlY)}, ${fmtNode(curlZ)})`;
+
+    const divAt = safeEval(divNode, {x:1,y:1,z:1});
+    const curlAt = [
+      safeEval(curlX,{x:1,y:1,z:1}),
+      safeEval(curlY,{x:1,y:1,z:1}),
+      safeEval(curlZ,{x:1,y:1,z:1})
+    ];
+
+    $("divText").textContent = interpretDivergence(divAt);
+    $("curlText").textContent = interpretCurl(curlAt);
+    $("maxwellOut").textContent = interpretMaxwell(divAt, curlAt);
+    $("initialOut").textContent = "Observe si los vectores se alejan de una zona, se acercan, giran alrededor de un eje o muestran circulación local.";
+
+    plotField(P.compile(), Q.compile(), R.compile());
+  }catch(e){
+    $("error").style.display = "block";
+    $("error").textContent = e.message || "No se pudo generar el campo.";
+  }
 }
 
-function safeDerivative(expr, variable){
-  try{
-    return math.derivative(expr, variable).toString();
-  }catch(e){
-    return "0";
+function safeEval(node, scope){
+  try {
+    const value = node.compile().evaluate(scope);
+    return Number.isFinite(value) ? value : 0;
+  } catch(e){ return 0; }
+}
+
+function interpretDivergence(v){
+  if(Math.abs(v) < 1e-8) return "Divergencia aproximadamente nula: no se observan fuentes o sumideros netos en esta lectura local.";
+  if(v > 0) return "Divergencia positiva: el campo tiende a expandirse; puede interpretarse como presencia de fuentes.";
+  return "Divergencia negativa: el campo tiende a comprimirse; puede interpretarse como presencia de sumideros.";
+}
+
+function interpretCurl(c){
+  const norm = Math.sqrt(c[0]*c[0] + c[1]*c[1] + c[2]*c[2]);
+  if(norm < 1e-8) return "Rotacional aproximadamente nulo: no se detecta giro local significativo.";
+  return "Rotacional no nulo: existe tendencia local a giro o circulación del campo.";
+}
+
+function interpretMaxwell(div, curl){
+  const curlNorm = Math.sqrt(curl[0]*curl[0] + curl[1]*curl[1] + curl[2]*curl[2]);
+  if(Math.abs(div) > 1e-8 && curlNorm > 1e-8) return "El campo presenta señales de flujo y circulación; puede relacionarse con análisis de Gauss y Stokes.";
+  if(Math.abs(div) > 1e-8) return "El comportamiento se relaciona principalmente con flujo y Ley de Gauss.";
+  if(curlNorm > 1e-8) return "El comportamiento se relaciona principalmente con circulación, Stokes o Faraday/Ampère-Maxwell.";
+  return "El campo no muestra divergencia ni rotacional significativos en esta lectura local.";
+}
+
+function range(a,b,n){
+  const arr=[]; const h=(b-a)/(n-1);
+  for(let i=0;i<n;i++) arr.push(a+i*h);
+  return arr;
+}
+
+function plotField(P,Q,R){
+  const mode = $("mode").value;
+  const min = Number($("min").value);
+  const max = Number($("max").value);
+  const density = Number($("density").value);
+  const vals = range(min,max,density);
+  const vectorSize = Number($("vectorSize").value || 0.70);
+  const scaleMode = $("normalize").value;
+
+  const starts = [];
+  let maxMag = 0;
+
+  for(const a of vals){
+    for(const b of vals){
+      const cVals = mode==="3d" ? vals : [0];
+      for(const c of cVals){
+        let xx=a, yy=b, zz=c;
+        if(mode==="xz"){ yy=0; zz=b; }
+        if(mode==="yz"){ xx=0; yy=a; zz=b; }
+
+        const scope={x:xx,y:yy,z:zz};
+        const uu = safeEvalCompiled(P, scope);
+        const vv = safeEvalCompiled(Q, scope);
+        const ww = safeEvalCompiled(R, scope);
+        const mag = Math.sqrt(uu*uu + vv*vv + ww*ww);
+
+        starts.push({xx,yy,zz,uu,vv,ww,mag});
+        if(mag > maxMag) maxMag = mag;
+      }
+    }
   }
+
+  const lineX=[], lineY=[], lineZ=[];
+  const coneX=[], coneY=[], coneZ=[], coneU=[], coneV=[], coneW=[];
+
+  for(const item of starts){
+    const {xx,yy,zz,uu,vv,ww,mag} = item;
+    if(mag === 0) continue;
+
+    let length;
+    if(scaleMode === "directional"){
+      length = vectorSize;
+    } else {
+      const relative = maxMag > 0 ? mag / maxMag : 0;
+      length = vectorSize * (0.25 + 0.75 * relative);
+    }
+
+    const dx = (uu / mag) * length;
+    const dy = (vv / mag) * length;
+    const dz = (ww / mag) * length;
+
+    const tipX = xx + dx;
+    const tipY = yy + dy;
+    const tipZ = zz + dz;
+
+    lineX.push(xx, tipX, null);
+    lineY.push(yy, tipY, null);
+    lineZ.push(zz, tipZ, null);
+
+    coneX.push(tipX);
+    coneY.push(tipY);
+    coneZ.push(tipZ);
+
+    coneU.push(dx);
+    coneV.push(dy);
+    coneW.push(dz);
+  }
+
+  const shafts = {
+    type:"scatter3d",
+    mode:"lines",
+    x:lineX,
+    y:lineY,
+    z:lineZ,
+    line:{color:"#1f77b4", width:3},
+    name:"Cola del vector",
+    hoverinfo:"skip"
+  };
+
+  const heads = {
+    type:"cone",
+    x:coneX,
+    y:coneY,
+    z:coneZ,
+    u:coneU,
+    v:coneV,
+    w:coneW,
+    sizemode:"absolute",
+    sizeref:0.16,
+    anchor:"tip",
+    colorscale:[[0,"#1f77b4"],[1,"#1f77b4"]],
+    showscale:false,
+    opacity:0.95,
+    name:"Punta del vector",
+    hovertemplate:"punta del vector<extra></extra>"
+  };
+
+  const origin = {
+    type:"scatter3d",
+    mode:"markers+text",
+    x:[0], y:[0], z:[0],
+    text:["origen"],
+    textposition:"top center",
+    marker:{size:4, color:"#111827"},
+    name:"Origen"
+  };
+
+  const layout = {
+    margin:{l:0,r:0,b:0,t:8},
+    scene:{
+      xaxis:{title:"x", range:[min,max]},
+      yaxis:{title:"y", range:[min,max]},
+      zaxis:{title:"z", range:[min,max]},
+      camera:{eye:{x:1.55,y:1.55,z:1.18}},
+      aspectmode:"cube"
+    },
+    legend:{x:0.78,y:0.95}
+  };
+
+  Plotly.newPlot("plot", [shafts, heads, origin], layout, {responsive:true});
 }
 
 function safeEvalCompiled(compiled, scope){
   try{
     const value = compiled.evaluate(scope);
     return Number.isFinite(value) ? value : 0;
-  }catch(e){
-    return 0;
-  }
+  }catch(e){ return 0; }
 }
 
-function updateMaxwell(divExpr, curlX, curlY, curlZ){
-  const field = $("fieldType").value;
-  const phenomenon = $("phenomenon").value;
-
-  let eq = "";
-  let text = "";
-  let application = "";
-
-  if(field === "electric" && phenomenon === "flux"){
-    eq = "∇ · E = ρ / ε₀";
-    text = "La Ley de Gauss para el campo eléctrico relaciona la divergencia del campo con la presencia de carga eléctrica.";
-    application = "Si la divergencia es positiva, el punto puede interpretarse como una fuente de campo eléctrico. Si es negativa, como un sumidero. Si es cero, no hay carga neta local.";
-  }
-
-  else if(field === "magnetic" && phenomenon === "flux"){
-    eq = "∇ · B = 0";
-    text = "La Ley de Gauss para el magnetismo indica que no existen monopolos magnéticos aislados.";
-    application = "Un campo magnético físicamente admisible debe tener divergencia cero. Si el cálculo produce una divergencia diferente de cero, el campo no representa adecuadamente un campo magnético real.";
-  }
-
-  else if(field === "electric" && phenomenon === "circulation"){
-    eq = "∇ × E = - ∂B / ∂t";
-    text = "La Ley de Faraday relaciona el rotacional del campo eléctrico con la variación temporal del campo magnético.";
-    application = "Un rotacional no nulo indica que el campo eléctrico presenta circulación, lo cual puede asociarse con un campo magnético variable en el tiempo.";
-  }
-
-  else if(field === "magnetic" && phenomenon === "circulation"){
-    eq = "∇ × B = μ₀J + μ₀ε₀ ∂E / ∂t";
-    text = "La Ley de Ampère-Maxwell relaciona el rotacional del campo magnético con corrientes eléctricas y variaciones temporales del campo eléctrico.";
-    application = "Un rotacional no nulo puede interpretarse como evidencia de corrientes eléctricas o de cambios en el campo eléctrico.";
-  }
-
-  $("maxwellOut").innerHTML = `
-    <p><strong>Ecuación asociada:</strong> ${eq}</p>
-    <p>${text}</p>
-    <p><strong>Interpretación:</strong> ${application}</p>
-    <p><strong>Divergencia calculada:</strong> ${divExpr}</p>
-    <p><strong>Rotacional calculado:</strong> (${curlX}, ${curlY}, ${curlZ})</p>
-  `;
-}
-
-function runSimulator(){
-  const P = $("P").value;
-  const Q = $("Q").value;
-  const R = $("R").value;
-
-  const dPdx = safeDerivative(P, "x");
-  const dQdy = safeDerivative(Q, "y");
-  const dRdz = safeDerivative(R, "z");
-
-  const divExpr = math.simplify(`(${dPdx}) + (${dQdy}) + (${dRdz})`).toString();
-
-  const dRdy = safeDerivative(R, "y");
-  const dQdz = safeDerivative(Q, "z");
-
-  const dPdz = safeDerivative(P, "z");
-  const dRdx = safeDerivative(R, "x");
-
-  const dQdx = safeDerivative(Q, "x");
-  const dPdy = safeDerivative(P, "y");
-
-  const curlX = math.simplify(`(${dRdy}) - (${dQdz})`).toString();
-  const curlY = math.simplify(`(${dPdz}) - (${dRdx})`).toString();
-  const curlZ = math.simplify(`(${dQdx}) - (${dPdy})`).toString();
-
-  $("mathOut").innerHTML = `
-    <p><strong>Campo vectorial:</strong> F(x,y,z) = (${P}, ${Q}, ${R})</p>
-    <p><strong>Divergencia:</strong> ∇ · F = ${divExpr}</p>
-    <p><strong>Rotacional:</strong> ∇ × F = (${curlX}, ${curlY}, ${curlZ})</p>
-  `;
-
-  updateMaxwell(divExpr, curlX, curlY, curlZ);
-  plotVectorField(P,Q,R);
-}
-
-function plotVectorField(P,Q,R){
-  let compiledP, compiledQ, compiledR;
-
-  try{
-    compiledP = math.compile(P);
-    compiledQ = math.compile(Q);
-    compiledR = math.compile(R);
-  }catch(e){
-    alert("Hay un error en la definición del campo.");
-    return;
-  }
-
-  const xs = [];
-  const ys = [];
-  const zs = [];
-  const us = [];
-  const vs = [];
-  const ws = [];
-
-  for(let x=-2; x<=2; x+=1){
-    for(let y=-2; y<=2; y+=1){
-      for(let z=-2; z<=2; z+=1){
-        const scope = {x:x, y:y, z:z};
-
-        xs.push(x);
-        ys.push(y);
-        zs.push(z);
-
-        us.push(safeEvalCompiled(compiledP, scope));
-        vs.push(safeEvalCompiled(compiledQ, scope));
-        ws.push(safeEvalCompiled(compiledR, scope));
-      }
-    }
-  }
-
-  const trace = {
-    type: "cone",
-    x: xs,
-    y: ys,
-    z: zs,
-    u: us,
-    v: vs,
-    w: ws,
-    sizemode: "absolute",
-    sizeref: 0.45,
-    anchor: "tail"
-  };
-
-  const layout = {
-    title: "Campo vectorial en 3D",
-    scene: {
-      xaxis: {title: "x"},
-      yaxis: {title: "y"},
-      zaxis: {title: "z"}
-    },
-    margin: {l:0, r:0, b:0, t:40}
-  };
-
-  Plotly.newPlot("plot", [trace], layout);
-}
-
-runSimulator();
+generate();
 </script>
-
 </body>
 </html>
