@@ -84,9 +84,16 @@
 
     <label for="density">Densidad visual</label>
     <select id="density">
-      <option value="5">Baja</option>
-      <option value="7" selected>Media</option>
-      <option value="9">Alta</option>
+      <option value="4">Baja</option>
+      <option value="5" selected>Media</option>
+      <option value="7">Alta</option>
+    </select>
+
+    <label for="vectorSize">Tamaño de los vectores</label>
+    <select id="vectorSize">
+      <option value="0.50">Corto</option>
+      <option value="0.80" selected>Medio</option>
+      <option value="1.05">Largo</option>
     </select>
 
     <button class="primary" id="generate">Generar análisis</button>
@@ -277,7 +284,7 @@ function plotField(P,Q,R){
         let vv = safeEvalCompiled(Q, scope);
         let ww = safeEvalCompiled(R, scope);
         const norm = Math.sqrt(uu*uu+vv*vv+ww*ww) || 1;
-        const scale = 0.35;
+        const scale = Number($("vectorSize").value || 0.80);
         x.push(xx); y.push(yy); z.push(zz);
         u.push((uu/norm)*scale); v.push((vv/norm)*scale); w.push((ww/norm)*scale);
       }
@@ -287,22 +294,14 @@ function plotField(P,Q,R){
   const cone = {
     type:"cone",
     x,y,z,u,v,w,
-
-    sizemode:"scaled",
-
-    sizeref:0.22,
-
-    anchor:"tip",
-
-    colorscale:[
-      [0,"#1f77b4"],
-      [1,"#1f77b4"]
-    ],
-
+    sizemode:"absolute",
+    sizeref:0.32,
+    anchor:"tail",
+    colorscale:[[0,"#1f77b4"],[1,"#1f77b4"]],
     showscale:false,
-
+    opacity:0.95,
     name:"Campo vectorial"
-};
+  };
 
   const layout = {
     margin:{l:0,r:0,b:0,t:8},
@@ -313,7 +312,17 @@ function plotField(P,Q,R){
       camera:{eye:{x:1.5,y:1.5,z:1.15}}
     }
   };
-  Plotly.newPlot("plot", [cone], layout, {responsive:true});
+  const origin = {
+    type:"scatter3d",
+    mode:"markers+text",
+    x:[0], y:[0], z:[0],
+    text:["origen"],
+    textposition:"top center",
+    marker:{size:4, color:"#111827"},
+    name:"Origen"
+  };
+
+  Plotly.newPlot("plot", [cone, origin], layout, {responsive:true});
 }
 
 function safeEvalCompiled(compiled, scope){
