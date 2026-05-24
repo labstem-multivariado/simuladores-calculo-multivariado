@@ -1,67 +1,9 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lab Multivariado</title>
-  <style>
-    :root{
-      --ink:#1f2937; --muted:#6b7280; --gold:#c59b2c; --gold-soft:#f8f1da;
-      --navy:#111827; --line:#d1d5db; --bg:#f6f7fb; --card:#ffffff;
-      --blue:#2563eb; --green:#059669;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
-    header{
-      background:
-        radial-gradient(circle at top left, rgba(197,155,44,.35), transparent 35%),
-        linear-gradient(135deg,#111827,#1e3a8a);
-      color:white;padding:46px 20px;text-align:center;border-bottom:6px solid var(--gold)
-    }
-    header h1{margin:0 0 8px;font-size:clamp(2rem,4vw,3rem);letter-spacing:.5px}
-    header p{margin:0 auto;max-width:850px;opacity:.95}
-    main{width:min(1120px,94vw);margin:28px auto}
-    .intro{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:0 12px 30px rgba(0,0,0,.07);margin-bottom:22px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 12px 30px rgba(0,0,0,.07)}
-    .tag{display:inline-block;background:var(--gold-soft);color:#7c5b00;border:1px solid #ead9a4;border-radius:999px;padding:4px 9px;font-size:.8rem;font-weight:700}
-    h2{color:#111827;margin:.7rem 0}
-    .btn{display:inline-block;background:var(--navy);color:white;text-decoration:none;padding:10px 14px;border-radius:12px;font-weight:700}
-    .btn:hover{background:#374151}
-    footer{width:min(1120px,94vw);margin:28px auto;color:var(--muted);font-size:.92rem}
-  </style>
-</head>
-<body>
-<header>
-  <h1>Lab Multivariado</h1>
-  <p>Simuladores interactivos para modelar, visualizar e interpretar problemas de Cálculo Multivariado en contextos de ingeniería.</p>
-</header>
-<main>
-  <section class="intro">
-    <h2>Curso: Cálculo Multivariado</h2>
-    <p>Este laboratorio acompaña el desarrollo de tareas basadas en problemas. Cada recurso busca fortalecer la interpretación geométrica, el pensamiento computacional y la toma de decisiones mediante herramientas de simulación.</p>
-  </section>
-  <section class="grid">
-    <article class="card">
-      <span class="tag">Tarea 2</span>
-      <h2>Simulador de gradiente</h2>
-      <p>Calcula y visualiza la dirección de máximo crecimiento de una función de dos variables.</p>
-      <a class="btn" href="simuladores/gradiente/">Abrir simulador</a>
-    </article>
-    <article class="card">
-      <span class="tag">Tarea 3</span>
-      <h2>Simulador de integración múltiple</h2>
-      <p>Explora regiones, cambios de coordenadas, jacobianos, integrales sugeridas y visualizaciones 2D/3D.</p>
-      <a class="btn" href="simuladores/integracion/">Abrir simulador</a>
-    </article>
-    <article class="card">
-      <span class="tag">Tarea 2</span>
-      <h2>Simulador de Lagrange</h2>
-      <p>Recurso externo para optimización restringida con multiplicadores de Lagrange.</p>
-      <a class="btn" target="_blank" rel="noopener" href="https://dmbourbaki.github.io/recursos/lagrange.html">Abrir recurso</a>
-    </article>
-  </section>
-</main>
-<footer>Universidad Nacional Abierta y a Distancia - Recurso académico de apoyo.</footer>
-</body>
-</html>
+<!DOCTYPE html><html><head><meta charset='utf-8'><title>Simulador Integración Pedagógico</title></head>
+<body><h1>Simulador pedagógico</h1>
+<p>Estructura inicial creada.</p>
+<ul>
+<li>Entrada: función y región cartesiana</li>
+<li>Pestañas: Región | Cambio | Jacobiano | Integral | Interpretación</li>
+<li>Detección de círculo/esfera/cilindro (pendiente de lógica)</li>
+</ul>
+</body></html>
