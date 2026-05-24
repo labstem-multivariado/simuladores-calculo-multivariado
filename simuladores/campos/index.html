@@ -10,7 +10,7 @@
     :root{
       --bg:#f4f6f8; --card:#fff; --ink:#1f2937; --muted:#6b7280; --line:#d1d5db;
       --navy:#111827; --gold:#c59b2c; --gold-soft:#f8f1da; --code:#f3f4f6;
-      --warn:#fff7ed; --warn-line:#f97316;
+      --warn:#fff7ed; --warn-line:#f97316; --blue:#1f77b4;
     }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--ink);line-height:1.45}
@@ -92,9 +92,9 @@
 
     <label for="vectorSize">Tamaño de los vectores</label>
     <select id="vectorSize">
-      <option value="0.28">Corto</option>
-      <option value="0.42" selected>Medio</option>
-      <option value="0.58">Largo</option>
+      <option value="0.45">Corto</option>
+      <option value="0.70" selected>Medio</option>
+      <option value="0.95">Largo</option>
     </select>
 
     <label for="normalize">Escala visual</label>
@@ -278,12 +278,11 @@ function plotField(P,Q,R){
   const max = Number($("max").value);
   const density = Number($("density").value);
   const vals = range(min,max,density);
-  const x=[], y=[], z=[], u=[], v=[], w=[];
-  const vectorSize = Number($("vectorSize").value || 0.42);
+  const vectorSize = Number($("vectorSize").value || 0.70);
   const scaleMode = $("normalize").value;
 
+  const starts = [];
   let maxMag = 0;
-  const raw = [];
 
   for(const a of vals){
     for(const b of vals){
@@ -299,42 +298,75 @@ function plotField(P,Q,R){
         const ww = safeEvalCompiled(R, scope);
         const mag = Math.sqrt(uu*uu + vv*vv + ww*ww);
 
-        raw.push({xx,yy,zz,uu,vv,ww,mag});
+        starts.push({xx,yy,zz,uu,vv,ww,mag});
         if(mag > maxMag) maxMag = mag;
       }
     }
   }
 
-  for(const item of raw){
-    const {xx,yy,zz,uu,vv,ww,mag} = item;
-    let factor = 0;
+  const lineX=[], lineY=[], lineZ=[];
+  const coneX=[], coneY=[], coneZ=[], coneU=[], coneV=[], coneW=[];
 
-    if(mag > 0){
-      if(scaleMode === "directional"){
-        factor = vectorSize / mag;
-      } else {
-        const relative = maxMag > 0 ? mag / maxMag : 0;
-        factor = vectorSize * (0.25 + 0.75 * relative) / mag;
-      }
+  for(const item of starts){
+    const {xx,yy,zz,uu,vv,ww,mag} = item;
+    if(mag === 0) continue;
+
+    let length;
+    if(scaleMode === "directional"){
+      length = vectorSize;
+    } else {
+      const relative = maxMag > 0 ? mag / maxMag : 0;
+      length = vectorSize * (0.25 + 0.75 * relative);
     }
 
-    x.push(xx); y.push(yy); z.push(zz);
-    u.push(uu * factor);
-    v.push(vv * factor);
-    w.push(ww * factor);
+    const dx = (uu / mag) * length;
+    const dy = (vv / mag) * length;
+    const dz = (ww / mag) * length;
+
+    const tipX = xx + dx;
+    const tipY = yy + dy;
+    const tipZ = zz + dz;
+
+    lineX.push(xx, tipX, null);
+    lineY.push(yy, tipY, null);
+    lineZ.push(zz, tipZ, null);
+
+    coneX.push(tipX);
+    coneY.push(tipY);
+    coneZ.push(tipZ);
+
+    coneU.push(dx);
+    coneV.push(dy);
+    coneW.push(dz);
   }
 
-  const cone = {
+  const shafts = {
+    type:"scatter3d",
+    mode:"lines",
+    x:lineX,
+    y:lineY,
+    z:lineZ,
+    line:{color:"#1f77b4", width:3},
+    name:"Cola del vector",
+    hoverinfo:"skip"
+  };
+
+  const heads = {
     type:"cone",
-    x,y,z,u,v,w,
+    x:coneX,
+    y:coneY,
+    z:coneZ,
+    u:coneU,
+    v:coneV,
+    w:coneW,
     sizemode:"absolute",
-    sizeref:0.26,
-    anchor:"tail",
+    sizeref:0.16,
+    anchor:"tip",
     colorscale:[[0,"#1f77b4"],[1,"#1f77b4"]],
     showscale:false,
-    opacity:0.96,
-    name:"Campo vectorial",
-    hovertemplate:"x: %{x}<br>y: %{y}<br>z: %{z}<extra></extra>"
+    opacity:0.95,
+    name:"Punta del vector",
+    hovertemplate:"punta del vector<extra></extra>"
   };
 
   const origin = {
@@ -355,9 +387,11 @@ function plotField(P,Q,R){
       zaxis:{title:"z", range:[min,max]},
       camera:{eye:{x:1.55,y:1.55,z:1.18}},
       aspectmode:"cube"
-    }
+    },
+    legend:{x:0.78,y:0.95}
   };
-  Plotly.newPlot("plot", [cone, origin], layout, {responsive:true});
+
+  Plotly.newPlot("plot", [shafts, heads, origin], layout, {responsive:true});
 }
 
 function safeEvalCompiled(compiled, scope){
