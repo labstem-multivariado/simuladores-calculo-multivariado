@@ -1,173 +1,446 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simulador de integración múltiple</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulador de integración múltiple - Lab Multivariado</title>
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/13.2.0/math.min.js"></script>
   <style>
-    :root{--primary:#4f46e5;--primary-dark:#312e81;--bg:#f7f7fb;--card:#fff;--text:#1f2937;--muted:#6b7280;--border:#d1d5db;--ok-bg:#ecfdf5;--ok-border:#10b981;--warn-bg:#fff7ed;--warn-border:#fb923c}
+    :root{
+      --primary:#4f46e5; --primary-dark:#312e81; --accent:#0ea5e9;
+      --bg:#f7f7fb; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
+      --border:#d1d5db; --soft:#eef2ff; --ok:#059669; --warn:#d97706;
+    }
     *{box-sizing:border-box}
-    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);line-height:1.45}
     header{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:white;padding:28px 18px;text-align:center}
-    header h1{margin:0 0 8px;font-size:clamp(1.5rem,3vw,2.2rem)}
-    header p{margin:0;opacity:.95}.home-link{color:white;display:inline-block;margin-top:10px;font-weight:700}
-    main{width:min(1240px,94vw);margin:24px auto;display:grid;grid-template-columns:390px 1fr;gap:20px}
-    @media(max-width:950px){main{grid-template-columns:1fr}}
-    .card{background:white;border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:0 8px 20px rgba(0,0,0,.06)}
-    h2{margin-top:0;color:var(--primary-dark);font-size:1.15rem}
-    label{display:block;font-weight:700;margin:13px 0 6px}
+    header h1{margin:0 0 8px;font-size:clamp(1.55rem,3vw,2.3rem)}
+    header p{margin:0 auto;max-width:900px;opacity:.96}
+    .home-link{color:white;display:inline-block;margin-top:10px;font-weight:700}
+    main{width:min(1320px,95vw);margin:22px auto;display:grid;grid-template-columns:390px 1fr;gap:18px}
+    @media(max-width:980px){main{grid-template-columns:1fr}}
+    .card{background:white;border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 8px 20px rgba(0,0,0,.06)}
+    h2{margin:0 0 12px;color:var(--primary-dark);font-size:1.15rem}
+    h3{margin:0 0 8px;color:#111827;font-size:1rem}
+    label{display:block;font-weight:700;margin:12px 0 6px}
     input,select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:1rem;background:white}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    button{width:100%;margin-top:16px;padding:12px 14px;border:none;border-radius:12px;background:var(--primary);color:white;font-weight:700;font-size:1rem;cursor:pointer}
+    button{width:100%;margin-top:14px;padding:12px 14px;border:none;border-radius:12px;background:var(--primary);color:white;font-weight:700;font-size:1rem;cursor:pointer}
     button:hover{background:var(--primary-dark)}
-    .hint{color:var(--muted);font-size:.92rem;margin-top:6px}
-    .result{margin-top:14px;padding:14px;border-radius:12px;border-left:5px solid var(--ok-border);background:var(--ok-bg)}
-    .error{margin-top:14px;padding:14px;border-radius:12px;border-left:5px solid var(--warn-border);background:var(--warn-bg);display:none}
-    .math-line{font-family:Consolas,Monaco,monospace;background:rgba(255,255,255,.7);padding:8px;border-radius:8px;overflow-x:auto}
-    #plot{width:100%;height:640px}
-    footer{width:min(1240px,94vw);margin:0 auto 28px;color:var(--muted);font-size:.92rem}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .hint{color:var(--muted);font-size:.9rem;margin-top:6px}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .tab{border:1px solid var(--border);background:white;color:var(--text);border-radius:999px;padding:8px 12px;font-weight:700;cursor:pointer;width:auto;margin:0}
+    .tab.active{background:var(--primary);color:white;border-color:var(--primary)}
+    .panel{display:none}
+    .panel.active{display:block}
+    .info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:14px}
+    .info-box{background:#fbfbff;border:1px solid var(--border);border-radius:14px;padding:12px}
+    .info-box strong{color:var(--primary-dark)}
+    .math{font-family:Consolas,Monaco,monospace;background:var(--soft);border-radius:10px;padding:9px;overflow-x:auto;margin:8px 0}
+    .callout{border-left:5px solid var(--accent);background:#eff6ff;border-radius:12px;padding:12px;margin-top:10px}
+    .warning{border-left:5px solid var(--warn);background:#fff7ed;border-radius:12px;padding:12px;margin-top:10px;display:none}
+    #plot{width:100%;height:620px}
+    footer{width:min(1320px,95vw);margin:0 auto 28px;color:var(--muted);font-size:.92rem}
+    .pill{display:inline-block;background:#eef2ff;color:#312e81;padding:4px 8px;border-radius:999px;font-size:.8rem;font-weight:700}
   </style>
 </head>
 <body>
 <header>
-  <h1>Simulador de integración múltiple</h1>
-  <p>Exploración de regiones cartesianas, polares, cilíndricas y esféricas para interpretar integración múltiple.</p>
+  <h1>Simulador de integración múltiple y cambios de coordenadas</h1>
+  <p>Explora la región, la transformación, el Jacobiano y la integral sugerida para problemas en coordenadas cartesianas, polares, cilíndricas y esféricas.</p>
   <a class="home-link" href="../../">Volver al inicio</a>
 </header>
+
 <main>
   <section class="card">
-    <h2>Datos de entrada</h2>
-    <label for="example">Cargar problema sugerido</label>
+    <h2>Configuración del problema</h2>
+
+    <label for="example">Problema sugerido</label>
     <select id="example">
-      <option value="A">A. Cobertura de señal - polar</option>
-      <option value="B">B. Energía electrónica - cartesiana</option>
-      <option value="C">C. Sensores - cilíndrica</option>
-      <option value="D">D. Multimedia - esférica</option>
-      <option value="E">E. Térmica - esférica</option>
+      <option value="A">A. Cobertura de señal - polares</option>
+      <option value="B">B. Energía electrónica - cartesianas</option>
+      <option value="C">C. Sensores - cilíndricas</option>
+      <option value="D">D. Multimedia - esféricas</option>
+      <option value="E">E. Térmica - esféricas</option>
       <option value="custom">Personalizado</option>
     </select>
-    <label for="coord">Sistema de representación</label>
+
+    <label for="coord">Sistema de coordenadas</label>
     <select id="coord">
-      <option value="polar">Polar: región circular 2D</option>
-      <option value="cartesian">Cartesiana: caja 3D</option>
-      <option value="cylindrical">Cilíndrica: cilindro 3D</option>
-      <option value="spherical">Esférica: esfera 3D</option>
+      <option value="polar">Polares: disco o región circular</option>
+      <option value="cartesian">Cartesianas: caja rectangular</option>
+      <option value="cylindrical">Cilíndricas: cilindro</option>
+      <option value="spherical">Esféricas: esfera</option>
     </select>
-    <label for="func">Función a integrar</label>
+
+    <label for="func">Función o densidad a integrar</label>
     <input id="func" value="16-x^2-y^2">
-    <p class="hint">Use variables según el sistema: x,y,z o r,z o rho. Ejemplos: <code>x+y+z</code>, <code>r^2+z</code>, <code>rho^2</code>.</p>
+    <p class="hint">Variables aceptadas: <code>x,y,z</code>, <code>r,theta,z</code>, <code>rho,theta,phi</code>. Use <code>*</code> para multiplicar y <code>^</code> para potencias.</p>
 
     <div id="polarParams">
       <div class="row">
-        <div><label for="rMax">Radio máximo r</label><input id="rMax" type="number" step="any" value="4"></div>
-        <div><label for="thetaMax">θ máximo</label><input id="thetaMax" type="number" step="any" value="6.283185307"></div>
+        <div><label for="pR">Radio R</label><input id="pR" type="number" step="any" value="4"></div>
+        <div><label for="pTheta">θ máximo</label><input id="pTheta" type="number" step="any" value="6.283185307"></div>
       </div>
     </div>
-    <div id="cartesianParams" style="display:none">
+
+    <div id="cartParams" style="display:none">
       <div class="row">
-        <div><label for="xMax">x máximo</label><input id="xMax" type="number" step="any" value="2"></div>
-        <div><label for="yMax">y máximo</label><input id="yMax" type="number" step="any" value="2"></div>
+        <div><label for="cX">x máximo</label><input id="cX" type="number" step="any" value="2"></div>
+        <div><label for="cY">y máximo</label><input id="cY" type="number" step="any" value="2"></div>
       </div>
-      <label for="zMax">z máximo</label><input id="zMax" type="number" step="any" value="2">
+      <label for="cZ">z máximo</label><input id="cZ" type="number" step="any" value="2">
     </div>
+
     <div id="cylParams" style="display:none">
       <div class="row">
-        <div><label for="cylR">Radio máximo r</label><input id="cylR" type="number" step="any" value="2"></div>
-        <div><label for="cylZ">Altura máxima z</label><input id="cylZ" type="number" step="any" value="4"></div>
+        <div><label for="cyR">Radio R</label><input id="cyR" type="number" step="any" value="2"></div>
+        <div><label for="cyZ">Altura H</label><input id="cyZ" type="number" step="any" value="4"></div>
       </div>
     </div>
+
     <div id="sphParams" style="display:none">
-      <label for="rhoMax">Radio máximo ρ</label><input id="rhoMax" type="number" step="any" value="3">
+      <label for="sR">Radio ρ máximo</label><input id="sR" type="number" step="any" value="3">
     </div>
-    <button id="btn">Visualizar región</button>
-    <div id="errorBox" class="error"></div>
-    <div class="result">
-      <strong>Interpretación del sistema de coordenadas</strong>
-      <p id="coordInfo"></p>
-      <p class="math-line" id="jacobianInfo"></p>
-      <p class="math-line" id="integralInfo"></p>
-      <p id="contextInfo"></p>
+
+    <button id="btn">Generar visualización y análisis</button>
+    <div id="errorBox" class="warning"></div>
+
+    <div class="callout">
+      <strong>Uso en la tarea</strong>
+      <p>El simulador orienta la visualización y la interpretación. La formulación y solución analítica deben justificarse en la entrega.</p>
     </div>
   </section>
+
   <section class="card">
-    <h2>Visualización geométrica</h2>
-    <div id="plot"></div>
+    <div class="tabs">
+      <button class="tab active" data-tab="problema">Problema</button>
+      <button class="tab" data-tab="transformacion">Transformación</button>
+      <button class="tab" data-tab="integral">Integral</button>
+      <button class="tab" data-tab="visual">Visualización</button>
+      <button class="tab" data-tab="interpretacion">Interpretación</button>
+    </div>
+
+    <div id="problema" class="panel active">
+      <h2>Definición del problema</h2>
+      <div class="info-grid">
+        <div class="info-box"><strong>Contexto</strong><p id="contextText"></p></div>
+        <div class="info-box"><strong>Región</strong><p class="math" id="regionText"></p></div>
+        <div class="info-box"><strong>Objetivo</strong><p id="objectiveText"></p></div>
+      </div>
+    </div>
+
+    <div id="transformacion" class="panel">
+      <h2>Cambio de coordenadas</h2>
+      <div class="info-grid">
+        <div class="info-box"><strong>Transformación</strong><p class="math" id="transformText"></p></div>
+        <div class="info-box"><strong>Jacobiano</strong><p class="math" id="jacobianText"></p></div>
+        <div class="info-box"><strong>Sentido geométrico</strong><p id="geoText"></p></div>
+      </div>
+    </div>
+
+    <div id="integral" class="panel">
+      <h2>Integral sugerida</h2>
+      <div class="info-grid">
+        <div class="info-box"><strong>Integral en el sistema recomendado</strong><p class="math" id="integralText"></p></div>
+        <div class="info-box"><strong>Valor aproximado</strong><p class="math" id="approxText"></p></div>
+        <div class="info-box"><strong>Observación</strong><p id="integralNote"></p></div>
+      </div>
+    </div>
+
+    <div id="visual" class="panel">
+      <h2>Visualización geométrica</h2>
+      <div id="plot"></div>
+    </div>
+
+    <div id="interpretacion" class="panel">
+      <h2>Interpretación para la tarea</h2>
+      <div class="info-grid">
+        <div class="info-box"><strong>¿Por qué este sistema?</strong><p id="whyText"></p></div>
+        <div class="info-box"><strong>Ángulos y variables</strong><p id="anglesText"></p></div>
+        <div class="info-box"><strong>Conclusión sugerida</strong><p id="conclusionText"></p></div>
+      </div>
+    </div>
   </section>
 </main>
-<footer><p>Este simulador permite interpretar la región y el sistema de coordenadas más conveniente. La solución analítica debe ser desarrollada por el estudiante.</p></footer>
+
+<footer>
+  <p>Lab Multivariado. Recurso de apoyo para la interpretación de integración múltiple y cambios de coordenadas.</p>
+</footer>
+
 <script>
-const examples={
-  A:{coord:"polar",func:"16-x^2-y^2",rMax:4,thetaMax:2*Math.PI,context:"La región circular sugiere usar coordenadas polares: θ permite recorrer el disco alrededor del origen."},
-  B:{coord:"cartesian",func:"x+y+z",xMax:2,yMax:2,zMax:2,context:"La región es una caja rectangular; las coordenadas cartesianas permiten describirla directamente."},
-  C:{coord:"cylindrical",func:"r^2+z",cylR:2,cylZ:4,context:"La región es cilíndrica; r mide distancia al eje z y θ recorre la rotación alrededor del eje."},
-  D:{coord:"spherical",func:"rho^2",rhoMax:3,context:"La región es esférica; ρ mide distancia al origen, θ giro horizontal y φ inclinación vertical."},
-  E:{coord:"spherical",func:"20-rho^2",rhoMax:2,context:"La simetría esférica facilita el análisis térmico usando ρ, θ y φ."}
+const problems = {
+  A: {
+    coord: "polar",
+    func: "16-x^2-y^2",
+    context: "Una empresa de telecomunicaciones estima la cobertura generada por una antena en una región circular.",
+    region: "x² + y² ≤ 16",
+    objective: "Estimar el volumen asociado a la cobertura de señal.",
+    pR: 4,
+    pTheta: 2*Math.PI
+  },
+  B: {
+    coord: "cartesian",
+    func: "x+y+z",
+    context: "Un sistema electrónico presenta una distribución espacial de energía en una región rectangular.",
+    region: "0 ≤ x ≤ 2, 0 ≤ y ≤ 2, 0 ≤ z ≤ 2",
+    objective: "Determinar la acumulación energética en una caja tridimensional.",
+    cX: 2, cY: 2, cZ: 2
+  },
+  C: {
+    coord: "cylindrical",
+    func: "r^2+z",
+    context: "Un sistema de sensores analiza una magnitud física en una región con simetría cilíndrica.",
+    region: "x² + y² ≤ 4, 0 ≤ z ≤ 4",
+    objective: "Estudiar la acumulación espacial dentro de un cilindro.",
+    cyR: 2, cyZ: 4
+  },
+  D: {
+    coord: "spherical",
+    func: "rho^2",
+    context: "Una plataforma multimedia analiza la distribución espacial de información procesada en una región esférica.",
+    region: "x² + y² + z² ≤ 9",
+    objective: "Estimar la acumulación espacial de información en una esfera.",
+    sR: 3
+  },
+  E: {
+    coord: "spherical",
+    func: "20-rho^2",
+    context: "Un dispositivo electrónico presenta una distribución térmica con simetría esférica.",
+    region: "x² + y² + z² ≤ 4",
+    objective: "Analizar la acumulación térmica en una región esférica.",
+    sR: 2
+  }
 };
-const q=id=>document.getElementById(id);
-const el={example:q("example"),coord:q("coord"),func:q("func"),errorBox:q("errorBox"),coordInfo:q("coordInfo"),jacobianInfo:q("jacobianInfo"),integralInfo:q("integralInfo"),contextInfo:q("contextInfo")};
-el.example.addEventListener("change",loadExample);
-el.coord.addEventListener("change",updateParamVisibility);
-q("btn").addEventListener("click",plot);
+
+const $ = (id) => document.getElementById(id);
+
+document.querySelectorAll(".tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    $(btn.dataset.tab).classList.add("active");
+  });
+});
+
+$("example").addEventListener("change", loadExample);
+$("coord").addEventListener("change", () => { updateParams(); generate(); });
+$("btn").addEventListener("click", generate);
+
+function updateParams(){
+  const c = $("coord").value;
+  $("polarParams").style.display = c==="polar" ? "block":"none";
+  $("cartParams").style.display = c==="cartesian" ? "block":"none";
+  $("cylParams").style.display = c==="cylindrical" ? "block":"none";
+  $("sphParams").style.display = c==="spherical" ? "block":"none";
+}
+
 function loadExample(){
-  const v=el.example.value;if(v==="custom")return;const e=examples[v];
-  el.coord.value=e.coord;el.func.value=e.func;
-  if(e.rMax)q("rMax").value=e.rMax;if(e.thetaMax)q("thetaMax").value=e.thetaMax;
-  if(e.xMax)q("xMax").value=e.xMax;if(e.yMax)q("yMax").value=e.yMax;if(e.zMax)q("zMax").value=e.zMax;
-  if(e.cylR)q("cylR").value=e.cylR;if(e.cylZ)q("cylZ").value=e.cylZ;if(e.rhoMax)q("rhoMax").value=e.rhoMax;
-  updateParamVisibility();plot();
+  const v = $("example").value;
+  if(v === "custom") return;
+  const p = problems[v];
+  $("coord").value = p.coord;
+  $("func").value = p.func;
+  if(p.pR) $("pR").value = p.pR;
+  if(p.pTheta) $("pTheta").value = p.pTheta;
+  if(p.cX) $("cX").value = p.cX;
+  if(p.cY) $("cY").value = p.cY;
+  if(p.cZ) $("cZ").value = p.cZ;
+  if(p.cyR) $("cyR").value = p.cyR;
+  if(p.cyZ) $("cyZ").value = p.cyZ;
+  if(p.sR) $("sR").value = p.sR;
+  updateParams();
+  generate();
 }
-function updateParamVisibility(){
-  const c=el.coord.value;
-  q("polarParams").style.display=c==="polar"?"block":"none";
-  q("cartesianParams").style.display=c==="cartesian"?"block":"none";
-  q("cylParams").style.display=c==="cylindrical"?"block":"none";
-  q("sphParams").style.display=c==="spherical"?"block":"none";
+
+function showError(msg){
+  $("errorBox").style.display = "block";
+  $("errorBox").textContent = msg;
 }
-function showError(m){el.errorBox.style.display="block";el.errorBox.textContent=m}
-function hideError(){el.errorBox.style.display="none";el.errorBox.textContent=""}
-function range(a,b,n){const out=[],h=(b-a)/(n-1);for(let i=0;i<n;i++)out.push(a+i*h);return out}
-function num(id){return Number(q(id).value)}
-function plot(){hideError();try{const c=el.coord.value;if(c==="polar")plotPolar();if(c==="cartesian")plotCartesian();if(c==="cylindrical")plotCylindrical();if(c==="spherical")plotSpherical()}catch(e){showError(e.message||"No se pudo generar la visualización.")}}
-function setInfo(type,integral,context){
-  if(type==="polar"){el.coordInfo.textContent="Coordenadas polares: x = r cos(θ), y = r sin(θ). El ángulo θ permite recorrer una región circular alrededor del origen.";el.jacobianInfo.textContent="Jacobiano: dA = r dr dθ"}
-  if(type==="cartesian"){el.coordInfo.textContent="Coordenadas cartesianas: la región se describe directamente con x, y, z mediante intervalos rectangulares.";el.jacobianInfo.textContent="Elemento de volumen: dV = dx dy dz"}
-  if(type==="cylindrical"){el.coordInfo.textContent="Coordenadas cilíndricas: x = r cos(θ), y = r sin(θ), z = z. Se usan para regiones con simetría alrededor del eje z.";el.jacobianInfo.textContent="Jacobiano: dV = r dr dθ dz"}
-  if(type==="spherical"){el.coordInfo.textContent="Coordenadas esféricas: x = ρ sin(φ) cos(θ), y = ρ sin(φ) sin(θ), z = ρ cos(φ). φ mide la inclinación respecto al eje z.";el.jacobianInfo.textContent="Jacobiano: dV = ρ² sin(φ) dρ dφ dθ"}
-  el.integralInfo.textContent=integral;el.contextInfo.textContent=context||"";
+function hideError(){
+  $("errorBox").style.display = "none";
+  $("errorBox").textContent = "";
 }
-function plotPolar(){
-  const R=num("rMax"),tmax=num("thetaMax"),f=math.parse(el.func.value).compile();
-  const rs=range(0,R,50),ts=range(0,tmax,80),x=[],y=[],z=[];
-  for(const r of rs){const rx=[],ry=[],rz=[];for(const t of ts){const xx=r*Math.cos(t),yy=r*Math.sin(t);rx.push(xx);ry.push(yy);let zz=f.evaluate({x:xx,y:yy,r:r,theta:t});rz.push(Number.isFinite(zz)?zz:null)}x.push(rx);y.push(ry);z.push(rz)}
-  const surface={type:"surface",x:x,y:y,z:z,opacity:.9,name:"Superficie"};
-  const disk={type:"surface",x:x,y:y,z:x.map(row=>row.map(()=>0)),opacity:.35,showscale:false,name:"Región en el plano"};
+function num(id){ return Number($(id).value); }
+function range(a,b,n){ const arr=[]; const h=(b-a)/(n-1); for(let i=0;i<n;i++) arr.push(a+i*h); return arr; }
+function fmt(v){ if(!Number.isFinite(v)) return "No disponible"; return Math.round(v*10000)/10000; }
+
+function generate(){
+  hideError();
+  try{
+    const coord = $("coord").value;
+    const selected = $("example").value;
+    const p = problems[selected] || {
+      context:"Problema personalizado.",
+      region:"Región definida por el usuario.",
+      objective:"Explorar la región y el cambio de coordenadas."
+    };
+    $("contextText").textContent = p.context;
+    $("regionText").textContent = p.region;
+    $("objectiveText").textContent = p.objective;
+
+    if(coord==="polar") polar();
+    if(coord==="cartesian") cartesian();
+    if(coord==="cylindrical") cylindrical();
+    if(coord==="spherical") spherical();
+  }catch(e){
+    showError(e.message || "No se pudo generar el análisis.");
+  }
+}
+
+function setCommon(transform,jacobian,geo,integral,approx,note,why,angles,conclusion){
+  $("transformText").textContent = transform;
+  $("jacobianText").textContent = jacobian;
+  $("geoText").textContent = geo;
+  $("integralText").textContent = integral;
+  $("approxText").textContent = approx;
+  $("integralNote").textContent = note;
+  $("whyText").textContent = why;
+  $("anglesText").textContent = angles;
+  $("conclusionText").textContent = conclusion;
+}
+
+function polar(){
+  const R = num("pR");
+  const thetaMax = num("pTheta");
+  const expr = math.parse($("func").value).compile();
+  const rs = range(0,R,55);
+  const ts = range(0,thetaMax,90);
+  const x=[],y=[],z=[];
+  for(const r of rs){
+    const xr=[],yr=[],zr=[];
+    for(const theta of ts){
+      const xx=r*Math.cos(theta), yy=r*Math.sin(theta);
+      xr.push(xx); yr.push(yy);
+      let val = expr.evaluate({x:xx,y:yy,r:r,theta:theta});
+      zr.push(Number.isFinite(val)?val:null);
+    }
+    x.push(xr); y.push(yr); z.push(zr);
+  }
+  const surface = {type:"surface",x,y,z,opacity:.9,name:"Superficie"};
+  const disk = {type:"surface",x,y,z:x.map(row=>row.map(()=>0)),opacity:.35,showscale:false,name:"Región"};
   Plotly.newPlot("plot",[surface,disk],{margin:{l:0,r:0,b:0,t:10},scene:{xaxis:{title:"x"},yaxis:{title:"y"},zaxis:{title:"f(x,y)"}}},{responsive:true});
-  setInfo("polar","Integral sugerida: ∫₀^"+R+" ∫₀^"+Number(tmax).toFixed(2)+" f(r cosθ, r sinθ) · r dθ dr",examples[el.example.value]?.context);
+
+  const approx = approximatePolar(expr,R,thetaMax);
+  setCommon(
+    "x = r cos(θ), y = r sin(θ)",
+    "dA = r dr dθ",
+    "El radio r mide la distancia al origen y θ permite recorrer la región circular.",
+    `∫₀^${fmt(R)} ∫₀^${fmt(thetaMax)} f(r cosθ, r sinθ) · r dθ dr`,
+    `Valor aproximado: ${fmt(approx)}`,
+    "El factor r ajusta el área al cambiar de coordenadas cartesianas a polares.",
+    "Porque la región es circular y se describe mejor con radio y ángulo.",
+    "θ mide el giro alrededor del origen en el plano xy.",
+    "El cambio a polares simplifica la región y permite interpretar el volumen como acumulación sobre un disco."
+  );
 }
-function plotCartesian(){
-  const X=num("xMax"),Y=num("yMax"),Z=num("zMax");
-  const trace={type:"mesh3d",x:[0,X,X,0,0,X,X,0],y:[0,0,Y,Y,0,0,Y,Y],z:[0,0,0,0,Z,Z,Z,Z],i:[0,0,0,4,4,4,0,1,2,3,0,1],j:[1,2,3,5,6,7,1,2,3,0,4,5],k:[2,3,0,6,7,4,5,6,7,4,5,6],opacity:.55,name:"Región cartesiana"};
+
+function cartesian(){
+  const X=num("cX"),Y=num("cY"),Z=num("cZ");
+  const expr = math.parse($("func").value).compile();
+  const trace = {
+    type:"mesh3d",
+    x:[0,X,X,0,0,X,X,0], y:[0,0,Y,Y,0,0,Y,Y], z:[0,0,0,0,Z,Z,Z,Z],
+    i:[0,0,0,4,4,4,0,1,2,3,0,1], j:[1,2,3,5,6,7,1,2,3,0,4,5], k:[2,3,0,6,7,4,5,6,7,4,5,6],
+    opacity:.55, name:"Caja cartesiana"
+  };
   Plotly.newPlot("plot",[trace],{margin:{l:0,r:0,b:0,t:10},scene:{xaxis:{title:"x"},yaxis:{title:"y"},zaxis:{title:"z"}}},{responsive:true});
-  setInfo("cartesian","Integral sugerida: ∫₀^"+Z+" ∫₀^"+Y+" ∫₀^"+X+" f(x,y,z) dx dy dz",examples[el.example.value]?.context);
+  const approx = approximateCartesian(expr,X,Y,Z);
+  setCommon(
+    "No se requiere transformación: se usan x, y, z.",
+    "dV = dx dy dz",
+    "La caja se describe directamente mediante intervalos en x, y y z.",
+    `∫₀^${fmt(Z)} ∫₀^${fmt(Y)} ∫₀^${fmt(X)} f(x,y,z) dx dy dz`,
+    `Valor aproximado: ${fmt(approx)}`,
+    "Las coordenadas cartesianas son adecuadas cuando la región tiene límites rectangulares.",
+    "Porque la región ya está delimitada por intervalos simples.",
+    "No aparecen ángulos, porque la geometría no requiere describir rotaciones.",
+    "La integral triple permite medir acumulación en un volumen rectangular."
+  );
 }
-function plotCylindrical(){
-  const R=num("cylR"),H=num("cylZ"),ts=range(0,2*Math.PI,90),zs=range(0,H,45),x=[],y=[],z=[];
-  for(const zz of zs){const rx=[],ry=[],rz=[];for(const t of ts){rx.push(R*Math.cos(t));ry.push(R*Math.sin(t));rz.push(zz)}x.push(rx);y.push(ry);z.push(rz)}
-  const side={type:"surface",x:x,y:y,z:z,opacity:.75,showscale:false,name:"Cilindro"};
+
+function cylindrical(){
+  const R=num("cyR"),H=num("cyZ");
+  const expr = math.parse($("func").value).compile();
+  const ts=range(0,2*Math.PI,90), zs=range(0,H,55), x=[],y=[],z=[];
+  for(const zz of zs){
+    const xr=[],yr=[],zr=[];
+    for(const theta of ts){
+      xr.push(R*Math.cos(theta)); yr.push(R*Math.sin(theta)); zr.push(zz);
+    }
+    x.push(xr); y.push(yr); z.push(zr);
+  }
+  const side={type:"surface",x,y,z,opacity:.7,showscale:false,name:"Cilindro"};
   Plotly.newPlot("plot",[side],{margin:{l:0,r:0,b:0,t:10},scene:{xaxis:{title:"x"},yaxis:{title:"y"},zaxis:{title:"z"}}},{responsive:true});
-  setInfo("cylindrical","Integral sugerida: ∫₀^"+H+" ∫₀^6.28 ∫₀^"+R+" f(r,z) · r dr dθ dz",examples[el.example.value]?.context);
+  const approx = approximateCylindrical(expr,R,H);
+  setCommon(
+    "x = r cos(θ), y = r sin(θ), z = z",
+    "dV = r dr dθ dz",
+    "r mide la distancia al eje z, θ gira alrededor del eje y z conserva la altura.",
+    `∫₀^${fmt(H)} ∫₀^6.2832 ∫₀^${fmt(R)} f(r,z) · r dr dθ dz`,
+    `Valor aproximado: ${fmt(approx)}`,
+    "El factor r aparece por el cambio desde el plano xy hacia coordenadas cilíndricas.",
+    "Porque la región tiene simetría cilíndrica alrededor del eje z.",
+    "θ recorre la base circular; z mide la altura del cilindro.",
+    "Las coordenadas cilíndricas facilitan analizar acumulación en regiones con base circular y altura."
+  );
 }
-function plotSpherical(){
-  const R=num("rhoMax"),phis=range(0,Math.PI,50),thetas=range(0,2*Math.PI,90),x=[],y=[],z=[];
-  for(const phi of phis){const rx=[],ry=[],rz=[];for(const theta of thetas){rx.push(R*Math.sin(phi)*Math.cos(theta));ry.push(R*Math.sin(phi)*Math.sin(theta));rz.push(R*Math.cos(phi))}x.push(rx);y.push(ry);z.push(rz)}
-  const sphere={type:"surface",x:x,y:y,z:z,opacity:.7,showscale:false,name:"Esfera"};
-  const axes={type:"scatter3d",mode:"lines+text",x:[0,0,0,R*.9],y:[0,0,0,0],z:[0,R*.9,0,0],text:["","φ respecto a z","","θ en plano xy"],textposition:"top center",line:{width:5},name:"Ángulos"};
-  Plotly.newPlot("plot",[sphere,axes],{margin:{l:0,r:0,b:0,t:10},scene:{xaxis:{title:"x"},yaxis:{title:"y"},zaxis:{title:"z"}}},{responsive:true});
-  setInfo("spherical","Integral sugerida: ∫₀^6.28 ∫₀^3.14 ∫₀^"+R+" f(ρ,θ,φ) · ρ² sin(φ) dρ dφ dθ",examples[el.example.value]?.context);
+
+function spherical(){
+  const R=num("sR");
+  const expr = math.parse($("func").value).compile();
+  const phis=range(0,Math.PI,55), thetas=range(0,2*Math.PI,90), x=[],y=[],z=[];
+  for(const phi of phis){
+    const xr=[],yr=[],zr=[];
+    for(const theta of thetas){
+      xr.push(R*Math.sin(phi)*Math.cos(theta));
+      yr.push(R*Math.sin(phi)*Math.sin(theta));
+      zr.push(R*Math.cos(phi));
+    }
+    x.push(xr); y.push(yr); z.push(zr);
+  }
+  const sphere={type:"surface",x,y,z,opacity:.7,showscale:false,name:"Esfera"};
+  const guide={type:"scatter3d",mode:"lines+text",x:[0,0,0,R*.85],y:[0,0,0,0],z:[0,R*.85,0,0],text:["","φ hacia eje z","","θ en plano xy"],textposition:"top center",line:{width:5},name:"Guía de ángulos"};
+  Plotly.newPlot("plot",[sphere,guide],{margin:{l:0,r:0,b:0,t:10},scene:{xaxis:{title:"x"},yaxis:{title:"y"},zaxis:{title:"z"}}},{responsive:true});
+  const approx = approximateSpherical(expr,R);
+  setCommon(
+    "x = ρ sin(φ) cos(θ), y = ρ sin(φ) sin(θ), z = ρ cos(φ)",
+    "dV = ρ² sin(φ) dρ dφ dθ",
+    "ρ mide la distancia al origen; θ gira en el plano xy; φ mide la inclinación respecto al eje z.",
+    `∫₀^6.2832 ∫₀^3.1416 ∫₀^${fmt(R)} f(ρ,θ,φ) · ρ² sin(φ) dρ dφ dθ`,
+    `Valor aproximado: ${fmt(approx)}`,
+    "El factor ρ² sin(φ) ajusta el volumen al recorrer capas esféricas.",
+    "Porque la región tiene simetría esférica y depende de la distancia al origen.",
+    "θ recorre el giro horizontal; φ permite cubrir la inclinación desde el eje z.",
+    "Las coordenadas esféricas preparan el análisis de regiones volumétricas y simetrías útiles en campos físicos."
+  );
 }
-updateParamVisibility();loadExample();
+
+function approximatePolar(expr,R,T){
+  const n=45,m=60,dr=R/n,dt=T/m; let sum=0;
+  for(let i=0;i<n;i++){const r=(i+.5)*dr;for(let j=0;j<m;j++){const t=(j+.5)*dt;const x=r*Math.cos(t),y=r*Math.sin(t);sum += expr.evaluate({x,y,r,theta:t})*r*dr*dt;}}
+  return sum;
+}
+function approximateCartesian(expr,X,Y,Z){
+  const n=18,dx=X/n,dy=Y/n,dz=Z/n; let sum=0;
+  for(let i=0;i<n;i++){const x=(i+.5)*dx;for(let j=0;j<n;j++){const y=(j+.5)*dy;for(let k=0;k<n;k++){const z=(k+.5)*dz;sum += expr.evaluate({x,y,z})*dx*dy*dz;}}}
+  return sum;
+}
+function approximateCylindrical(expr,R,H){
+  const nr=35,nt=45,nz=25,dr=R/nr,dt=2*Math.PI/nt,dz=H/nz; let sum=0;
+  for(let i=0;i<nr;i++){const r=(i+.5)*dr;for(let j=0;j<nt;j++){const theta=(j+.5)*dt;for(let k=0;k<nz;k++){const z=(k+.5)*dz;sum += expr.evaluate({r,theta,z,x:r*Math.cos(theta),y:r*Math.sin(theta)})*r*dr*dt*dz;}}}
+  return sum;
+}
+function approximateSpherical(expr,R){
+  const nr=28,np=32,nt=38,dr=R/nr,dp=Math.PI/np,dt=2*Math.PI/nt; let sum=0;
+  for(let i=0;i<nr;i++){const rho=(i+.5)*dr;for(let j=0;j<np;j++){const phi=(j+.5)*dp;for(let k=0;k<nt;k++){const theta=(k+.5)*dt;const x=rho*Math.sin(phi)*Math.cos(theta),y=rho*Math.sin(phi)*Math.sin(theta),z=rho*Math.cos(phi);sum += expr.evaluate({rho,theta,phi,x,y,z})*rho*rho*Math.sin(phi)*dr*dp*dt;}}}
+  return sum;
+}
+
+updateParams();
+loadExample();
 </script>
 </body>
 </html>

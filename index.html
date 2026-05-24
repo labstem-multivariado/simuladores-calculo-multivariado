@@ -17,6 +17,7 @@
     .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:18px}
     .card h2{margin:0 0 8px;color:var(--primary-dark);font-size:1.25rem}
     .card p{color:var(--muted)}
+    .tag{display:inline-block;font-size:.8rem;background:#eef2ff;color:#312e81;padding:4px 8px;border-radius:999px;margin-bottom:8px;font-weight:700}
     .btn{display:inline-block;margin-top:8px;background:var(--primary);color:white;text-decoration:none;padding:10px 14px;border-radius:12px;font-weight:700}
     .btn:hover{background:var(--primary-dark)}
     footer{width:min(1080px,92vw);margin:30px auto;color:var(--muted);font-size:.92rem}
@@ -34,18 +35,21 @@
     </section>
     <section class="grid">
       <article class="card">
+        <span class="tag">Tarea 2</span>
         <h2>Simulador de gradiente</h2>
-        <p>Permite ingresar una función f(x,y), evaluar el gradiente en un punto y visualizar la dirección de máximo crecimiento.</p>
+        <p>Evalúa el gradiente en un punto y visualiza la dirección de máximo crecimiento.</p>
         <a class="btn" href="simuladores/gradiente/">Abrir simulador</a>
       </article>
       <article class="card">
+        <span class="tag">Tarea 3</span>
         <h2>Simulador de integración múltiple</h2>
-        <p>Permite explorar regiones cartesianas, polares, cilíndricas y esféricas para interpretar cambios de coordenadas.</p>
+        <p>Explora regiones, transformaciones, jacobianos e integrales en coordenadas cartesianas, polares, cilíndricas y esféricas.</p>
         <a class="btn" href="simuladores/integracion/">Abrir simulador</a>
       </article>
       <article class="card">
+        <span class="tag">Tarea 2</span>
         <h2>Simulador de Lagrange</h2>
-        <p>Recurso externo para apoyar la interpretación de optimización restringida mediante multiplicadores de Lagrange.</p>
+        <p>Recurso externo para interpretar optimización restringida mediante multiplicadores de Lagrange.</p>
         <a class="btn" href="https://dmbourbaki.github.io/recursos/lagrange.html" target="_blank" rel="noopener">Abrir recurso</a>
       </article>
     </section>
